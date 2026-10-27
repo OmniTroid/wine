@@ -52,8 +52,9 @@ static VkResult macdrv_vulkan_surface_create(HWND hwnd, const struct vulkan_inst
     TRACE("%p %p %p %p\n", hwnd, instance, handle, client);
 
     if (!(surface = macdrv_client_surface_create(hwnd))) return VK_ERROR_OUT_OF_HOST_MEMORY;
-    if (!(surface->metal_device = macdrv_create_metal_device())) goto err;
-    if (!(surface->metal_view = macdrv_view_create_metal_view(surface->cocoa_view, surface->metal_device))) goto err;
+    /* Highball: a swapchain in our own window, or a layer hosted by the window's owning process
+     * when that is another process (Wine bug 60263) */
+    if (!macdrv_client_surface_acquire_metal_swapchain(surface, NULL)) goto err;
 
     if (instance->p_vkCreateMetalSurfaceEXT)
     {
@@ -61,7 +62,7 @@ static VkResult macdrv_vulkan_surface_create(HWND hwnd, const struct vulkan_inst
         create_info_host.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
         create_info_host.pNext = NULL;
         create_info_host.flags = 0; /* reserved */
-        create_info_host.pLayer = macdrv_view_get_metal_layer(surface->metal_view);
+        create_info_host.pLayer = macdrv_swapchain_get_layer(surface->metal_swapchain);
 
         res = instance->p_vkCreateMetalSurfaceEXT(instance->host.instance, &create_info_host, NULL /* allocator */, handle);
     }
@@ -71,7 +72,7 @@ static VkResult macdrv_vulkan_surface_create(HWND hwnd, const struct vulkan_inst
         create_info_host.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
         create_info_host.pNext = NULL;
         create_info_host.flags = 0; /* reserved */
-        create_info_host.pView = macdrv_view_get_metal_layer(surface->metal_view);
+        create_info_host.pView = macdrv_swapchain_get_layer(surface->metal_swapchain);
 
         res = instance->p_vkCreateMacOSSurfaceMVK(instance->host.instance, &create_info_host, NULL /* allocator */, handle);
     }

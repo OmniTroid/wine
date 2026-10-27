@@ -26,6 +26,8 @@
 
 #include "config.h"
 
+#include <pthread.h>
+
 #include "ntstatus.h"
 #define WIN32_NO_STATUS
 #include "macdrv.h"
@@ -92,6 +94,122 @@ C_ASSERT(sizeof(struct d3dmetal_macdrv_win_data) == 120);
 void OnMainThread(dispatch_block_t block);
 static void cf_client_surface_release(CFAllocatorRef allocator, const void *client_surface);
 
+/* Highball: cross-process swapchains (Wine bug 60263). A window whose root belongs to another
+ * process (a CEF GPU process presenting into the browser process's window: Steam, Rockstar,
+ * Ubisoft Connect) has no Cocoa view of ours to draw into. Its client surface renders into a
+ * CAContext-backed layer that the root's owner hosts, see
+ * macdrv_client_surface_acquire_metal_swapchain(). D3DMetal/DXMT are none the wiser: the
+ * surface's view is handed out as client_cocoa_view, doubles as the "metal view" handle, and the
+ * layer behind it is the offscreen swapchain's. Surfaces are keyed by that view, not by HWND: the
+ * same HWND is asked for a swapchain several times (CEF recreates it on every resize). */
+static pthread_mutex_t remote_layer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static CFMutableDictionaryRef remote_layer_surfaces;   /* view -> client_surface D3DMetal/DXMT still uses */
+
+/* One retired surface held per child HWND. CAContextSwapChain's dealloc un-hosts the layer, and
+ * a client that resizes by destroying its swapchain and creating a new one would have nothing
+ * hosted between the two; so a released surface is held until the child's next release, which
+ * follows its successor's creation (the owner retires the old layer when the new one is hosted).
+ * A destroyed child never releases again, so a release whose child is gone is not held, and
+ * every release sweeps out dead slots. */
+static CFMutableDictionaryRef pending_by_child;        /* child HWND -> retired client_surface */
+
+static struct client_surface *remote_layer_surface_for_view(macdrv_view view)
+{
+    struct client_surface *client = NULL;
+
+    if (!view) return NULL;
+    pthread_mutex_lock(&remote_layer_mutex);
+    if (remote_layer_surfaces)
+        client = (struct client_surface *)CFDictionaryGetValue(remote_layer_surfaces, view);
+    pthread_mutex_unlock(&remote_layer_mutex);
+    return client;
+}
+
+static BOOL remote_layer_surface_add(struct macdrv_client_surface *surface)
+{
+    BOOL ret;
+
+    pthread_mutex_lock(&remote_layer_mutex);
+    if (!remote_layer_surfaces)
+        remote_layer_surfaces = CFDictionaryCreateMutable(NULL, 0, NULL, NULL);
+    if ((ret = remote_layer_surfaces && surface->cocoa_view))
+        CFDictionarySetValue(remote_layer_surfaces, surface->cocoa_view, &surface->client);
+    pthread_mutex_unlock(&remote_layer_mutex);
+    return ret;
+}
+
+/* The surface behind a view, removed from the table; NULL when the view is not one of ours. */
+static struct client_surface *remote_layer_surface_take(macdrv_view view)
+{
+    struct client_surface *client = NULL;
+
+    if (!view) return NULL;
+    pthread_mutex_lock(&remote_layer_mutex);
+    if (remote_layer_surfaces &&
+        (client = (struct client_surface *)CFDictionaryGetValue(remote_layer_surfaces, view)))
+        CFDictionaryRemoveValue(remote_layer_surfaces, view);
+    pthread_mutex_unlock(&remote_layer_mutex);
+    return client;
+}
+
+/* Remove every held surface whose child window no longer exists, for release outside the lock.
+ * Called with remote_layer_mutex held; at most max per call, the rest on the next release. */
+static CFIndex collect_dead_pending(struct client_surface **out, CFIndex max)
+{
+    CFIndex count, i, n = 0;
+    const void **keys, **vals;
+
+    if (!pending_by_child || !(count = CFDictionaryGetCount(pending_by_child))) return 0;
+    keys = calloc(count, sizeof(*keys));
+    vals = calloc(count, sizeof(*vals));
+    if (!keys || !vals) { free(keys); free(vals); return 0; }
+    CFDictionaryGetKeysAndValues(pending_by_child, keys, vals);
+    for (i = 0; i < count && n < max; i++)
+    {
+        if (NtUserIsWindow((HWND)keys[i])) continue;
+        out[n++] = (struct client_surface *)vals[i];
+        CFDictionaryRemoveValue(pending_by_child, keys[i]);
+    }
+    free(keys);
+    free(vals);
+    return n;
+}
+
+/* Retire the surface behind a view D3DMetal/DXMT is finished with; TRUE if the view was one of
+ * ours, so the caller falls through to the ordinary metal view release when it was not. */
+static BOOL release_remote_layer_view(macdrv_view view)
+{
+    struct client_surface *client, *drain = NULL;
+    struct client_surface *dead[16];
+    CFIndex ndead, i;
+    HWND owner;
+
+    if (!(client = remote_layer_surface_take(view))) return FALSE;
+
+    owner = client->hwnd;
+    pthread_mutex_lock(&remote_layer_mutex);
+    if (!pending_by_child)
+        pending_by_child = CFDictionaryCreateMutable(NULL, 0, NULL, NULL);
+    if (!pending_by_child || !owner || !NtUserIsWindow(owner))
+    {
+        /* no table, or the child is already gone and no successor will ever come: release now */
+        drain = client;
+    }
+    else
+    {
+        drain = (struct client_surface *)CFDictionaryGetValue(pending_by_child, owner);
+        CFDictionarySetValue(pending_by_child, owner, client);
+    }
+    ndead = collect_dead_pending(dead, ARRAY_SIZE(dead));
+    pthread_mutex_unlock(&remote_layer_mutex);
+
+    TRACE("view %p child %p: %s, draining %p and %ld dead-child slot(s)\n", view, owner,
+          drain == client ? "child gone, released now" : "held", drain, (long)ndead);
+    if (drain) client_surface_release(drain);
+    for (i = 0; i < ndead; i++) client_surface_release(dead[i]);
+    return TRUE;
+}
+
 static void my_macdrv_init_display_devices(BOOL p1)
 {
     TRACE("macdrv_init_display_devices %d - no-op\n", p1);
@@ -102,6 +220,7 @@ static struct d3dmetal_macdrv_win_data *my_get_win_data(HWND hwnd)
     struct macdrv_win_data *data;
     struct d3dmetal_macdrv_win_data *d3dm_data;
     struct macdrv_client_surface *client_surface;
+    BOOL remote;
     TRACE("get_win_data %p\n", hwnd);
 
     /* Creating a client surface on each call to get_win_data() means it's no longer idempotent,
@@ -111,9 +230,14 @@ static struct d3dmetal_macdrv_win_data *my_get_win_data(HWND hwnd)
      */
     client_surface = macdrv_client_surface_create(hwnd);
 
+    /* Highball: a window whose root another process owns gets a remote layer instead of a view
+     * in a window of ours; the layer is created once the renderer hands over its Metal device,
+     * in my_macdrv_view_create_metal_view(). */
+    remote = macdrv_window_has_foreign_root(hwnd, NULL);
+
     /* get_win_data() needs to happen after client_surface creation to avoid deadlocks */
     data = get_win_data(hwnd);
-    if (!data)
+    if (!data && !remote)
     {
         client_surface_release((struct client_surface *)client_surface);
         return NULL;
@@ -121,34 +245,81 @@ static struct d3dmetal_macdrv_win_data *my_get_win_data(HWND hwnd)
 
     macdrv_set_view_d3dmetal_client_surface(client_surface->cocoa_view, &client_surface->client);
 
-    if (!data->d3dmetal_client_surfaces)
+    if (remote)
     {
-        static const CFArrayCallBacks callbacks = { .release = cf_client_surface_release };
-        data->d3dmetal_client_surfaces = CFArrayCreateMutable(NULL, 0, &callbacks);
+        /* owned by the tables above, not by the window's data: the window may not have any */
+        if (!remote_layer_surface_add(client_surface))
+        {
+            release_win_data(data);
+            client_surface_release((struct client_surface *)client_surface);
+            return NULL;
+        }
+        TRACE("hwnd %p: root belongs to another process, surface %p view %p\n", hwnd,
+              client_surface, client_surface->cocoa_view);
     }
-    CFArrayAppendValue(data->d3dmetal_client_surfaces, client_surface);
+    else
+    {
+        if (!data->d3dmetal_client_surfaces)
+        {
+            static const CFArrayCallBacks callbacks = { .release = cf_client_surface_release };
+            data->d3dmetal_client_surfaces = CFArrayCreateMutable(NULL, 0, &callbacks);
+        }
+        CFArrayAppendValue(data->d3dmetal_client_surfaces, client_surface);
+    }
 
     d3dm_data = calloc(1, sizeof(*d3dm_data));
 
-    d3dm_data->hwnd = data->hwnd;
-    d3dm_data->cocoa_window = data->cocoa_window;
+    d3dm_data->hwnd = hwnd;
     /* cocoa_view is no longer present in macdrv_win_data. D3DMetal doesn't use it. */
     d3dm_data->client_cocoa_view = client_surface->cocoa_view;
-    d3dm_data->window_rect = data->rects.window;
-    d3dm_data->whole_rect = data->rects.visible;
-    d3dm_data->client_rect = data->rects.client;
-    d3dm_data->pixel_format = data->pixel_format;
-    /* color_key is no longer present in macdrv_win_data. Assume D3DMetal doesn't use it. */
-    d3dm_data->drag_event = data->drag_event;
-    d3dm_data->on_screen = data->on_screen;
-    d3dm_data->shaped = data->shaped;
-    d3dm_data->layered = data->layered;
-    d3dm_data->ulw_layered = data->ulw_layered;
-    d3dm_data->per_pixel_alpha = data->per_pixel_alpha;
-    d3dm_data->minimized = data->minimized;
-    /* swap_interval is no longer present in macdrv_win_data. Assume D3DMetal doesn't use it. */
-    /* surface/unminimized_surface are no longer present in macdrv_win_data. Assume D3DMetal doesn't use it. */
-    d3dm_data->padding[0] = data;
+    if (data)
+    {
+        d3dm_data->cocoa_window = data->cocoa_window;
+        d3dm_data->window_rect = data->rects.window;
+        d3dm_data->whole_rect = data->rects.visible;
+        d3dm_data->client_rect = data->rects.client;
+        d3dm_data->pixel_format = data->pixel_format;
+        /* color_key is no longer present in macdrv_win_data. Assume D3DMetal doesn't use it. */
+        d3dm_data->drag_event = data->drag_event;
+        d3dm_data->on_screen = data->on_screen;
+        d3dm_data->shaped = data->shaped;
+        d3dm_data->layered = data->layered;
+        d3dm_data->ulw_layered = data->ulw_layered;
+        d3dm_data->per_pixel_alpha = data->per_pixel_alpha;
+        d3dm_data->minimized = data->minimized;
+        /* swap_interval is no longer present in macdrv_win_data. Assume D3DMetal doesn't use it. */
+        /* surface/unminimized_surface are no longer present in macdrv_win_data. Assume D3DMetal doesn't use it. */
+    }
+    else
+    {
+        /* Highball: a window this process never positioned, owned by another process. The rects
+         * are the ones the driver would have recorded, relative to the parent's client area. */
+        HWND parent = NtUserGetAncestor(hwnd, GA_PARENT);
+        UINT dpi = NtUserGetWinMonitorDpi(hwnd, MDT_RAW_DPI);
+        RECT window_rect, client_rect;
+
+        if (NtUserGetWindowRect(hwnd, &window_rect, dpi))
+        {
+            if (parent) NtUserMapWindowPoints(0, parent, (POINT *)&window_rect, 2, dpi);
+            d3dm_data->window_rect = d3dm_data->whole_rect = window_rect;
+        }
+        if (NtUserGetClientRect(hwnd, &client_rect, dpi))
+        {
+            NtUserMapWindowPoints(hwnd, parent, (POINT *)&client_rect, 2, dpi);
+            d3dm_data->client_rect = client_rect;
+        }
+        d3dm_data->on_screen = !!(NtUserGetWindowLongW(hwnd, GWL_STYLE) & WS_VISIBLE);
+    }
+
+    if (remote)
+    {
+        /* Highball: nothing here needs the window's data locked while the renderer sets up, and
+         * the swapchain creation below waits on the main thread. */
+        release_win_data(data);
+        d3dm_data->padding[0] = NULL;
+    }
+    else
+        d3dm_data->padding[0] = data;
 
     return d3dm_data;
 }
@@ -160,7 +331,7 @@ static void my_release_win_data(struct d3dmetal_macdrv_win_data *data)
     if (!data)
         return;
 
-    release_win_data(data->padding[0]);
+    if (data->padding[0]) release_win_data(data->padding[0]);
     free(data);
 }
 
@@ -184,19 +355,47 @@ static void my_macdrv_release_metal_device(macdrv_metal_device d)
 
 static macdrv_metal_view my_macdrv_view_create_metal_view(macdrv_view v, macdrv_metal_device d)
 {
+    struct client_surface *client;
+
     TRACE("macdrv_view_create_metal_view %p %p\n", v, d);
+
+    /* Highball: a remote surface's view is a placeholder. The layer it hands out is the offscreen
+     * swapchain's, created here with the renderer's device, and the view itself is the handle
+     * the renderer gets back, so that get_metal_layer() and release_metal_view() find it. */
+    if ((client = remote_layer_surface_for_view(v)))
+    {
+        struct macdrv_client_surface *surface = impl_from_client_surface(client);
+
+        if (!macdrv_client_surface_acquire_metal_swapchain(surface, d))
+        {
+            ERR("no remote swapchain for %s\n", debugstr_client_surface(client));
+            if (remote_layer_surface_take(v)) client_surface_release(client);
+            return NULL;
+        }
+        return (macdrv_metal_view)v;
+    }
+
     return macdrv_view_create_metal_view(v, d);
 }
 
 static macdrv_metal_layer my_macdrv_view_get_metal_layer(macdrv_metal_view v)
 {
+    struct client_surface *client;
+
     TRACE("macdrv_view_get_metal_layer %p\n", v);
+
+    if ((client = remote_layer_surface_for_view((macdrv_view)v)))
+        return macdrv_swapchain_get_layer(impl_from_client_surface(client)->metal_swapchain);
+
     return macdrv_view_get_metal_layer(v);
 }
 
 static void my_macdrv_view_release_metal_view(macdrv_metal_view v)
 {
     TRACE("macdrv_view_release_metal_view %p\n", v);
+
+    if (release_remote_layer_view((macdrv_view)v)) return;
+
     return macdrv_view_release_metal_view(v);
 }
 

@@ -46,6 +46,27 @@
 
 @end
 
+/* Highball: private CoreAnimation API used to host a layer rendered by another process
+ * (Wine bug 60263). Backported from upstream Wine 11.11+ (dlls/winemac.drv/cocoa_window.m). */
+typedef uint32_t CGSConnectionID;
+extern CGSConnectionID CGSMainConnectionID(void);
+
+typedef uint32_t CAContextID;
+
+@interface CAContext : NSObject
+
++ (id) contextWithCGSConnection:(CGSConnectionID)connection options:(NSDictionary*)options;
+@property(readonly) CAContextID contextId;
+@property(retain) CALayer* layer;
+
+@end
+
+@interface CALayerHost : CALayer
+
+- (void) setContextId:(CAContextID)contextId;
+
+@end
+
 
 static NSUInteger style_mask_for_features(const struct macdrv_window_features* wf)
 {
@@ -375,6 +396,7 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
     int backingSize[2];
 
     WineMetalView *_metalView;
+    NSMutableDictionary<NSNumber*, CALayerHost*>* _caLayerHosts;   /* Highball: Wine bug 60263 */
 
 @public void *d3dmetal_client_surface;   /* CW HACK 22435 */
 }
@@ -389,6 +411,10 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
     - (void) wine_setBackingSize:(const int*)newBackingSize;
 
     - (WineMetalView*) newMetalViewWithDevice:(id<MTLDevice>)device;
+    - (void) addCALayerHostViewWithContextId:(CAContextID)contextId frame:(CGRect)frame;
+    - (void) updateCALayerHostFrame:(CAContextID)contextId frame:(CGRect)frame;
+    - (void) setCALayerHostZPosition:(CAContextID)contextId zPosition:(double)zpos;
+    - (void) removeCALayerHostView:(CAContextID)contextId;
 
 @end
 
@@ -477,6 +503,35 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
 @end
 
 
+/* Highball: Win32 speaks raw pixels and Cocoa points (two to one on Retina), so an odd pixel
+ * dimension is a half point, and a hosted layer that Win32 says reaches the window edge stops one
+ * device pixel short of it, showing the window beneath as a hairline. Snapped only at the edges so
+ * an interior sibling keeps its exact geometry. */
+static CGRect snap_host_frame_to_view_edges(CGRect frame, CGRect view)
+{
+    /* one device pixel in points; a fixed 1.0 would also close a gap the app asked for */
+    const CGFloat px = retina_on ? 0.5 : 1.0;
+
+    if (CGRectIsNull(frame) || CGRectIsEmpty(frame) || CGRectIsEmpty(view)) return frame;
+
+    if (frame.origin.x > 0.0 && frame.origin.x <= px)
+    {
+        frame.size.width += frame.origin.x;
+        frame.origin.x = 0.0;
+    }
+    if (frame.origin.y > 0.0 && frame.origin.y <= px)
+    {
+        frame.size.height += frame.origin.y;
+        frame.origin.y = 0.0;
+    }
+    if (CGRectGetMaxX(frame) >= view.size.width - px)
+        frame.size.width = view.size.width - frame.origin.x;
+    if (CGRectGetMaxY(frame) >= view.size.height - px)
+        frame.size.height = view.size.height - frame.origin.y;
+    return frame;
+}
+
+
 @implementation WineContentView
 
 @synthesize everHadGLContext = _everHadGLContext;
@@ -499,6 +554,7 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
         [markedText release];
         [glContexts release];
         [pendingGlContexts release];
+        [_caLayerHosts release];
         CGImageRelease(colorImage);
         CGImageRelease(shapeImage);
         [super dealloc];
@@ -702,6 +758,97 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
         return _metalView;
     }
 
+    /* Highball: host a layer another process renders into, keyed by its CAContext id
+     * (Wine bug 60263). frame is in points, in this view's coordinate space; CGRectNull means
+     * "no child rect supplied" and fills the view, which is the top-level window case. */
+    - (void) addCALayerHostViewWithContextId:(CAContextID)contextId frame:(CGRect)frame
+    {
+        if (!_caLayerHosts)
+            _caLayerHosts = [[NSMutableDictionary alloc] init];
+
+        [self removeCALayerHostView:contextId];
+
+        CALayerHost* host = [CALayerHost layer];
+        [host setContextId:contextId];
+        host.magnificationFilter = kCAFilterNearest;
+        host.contentsScale = retina_on ? 2.0 : 1.0;
+        frame = snap_host_frame_to_view_edges(frame, self.layer.bounds);
+        /* A host given a real child rect is positioned and clipped to it, so siblings on one
+         * window stop occluding one another. Three cases: CGRectIsEmpty cannot tell "no rect
+         * supplied" from "really 0x0", and a 0x0 layer stretched over the content view with
+         * nothing drawn in it blacks out everything below; a window with no area is hidden. */
+        if (CGRectIsNull(frame))
+        {
+            host.frame = self.layer.bounds;
+            host.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+        }
+        else if (CGRectIsEmpty(frame))
+        {
+            host.frame = CGRectZero;
+            host.masksToBounds = YES;
+            host.hidden = YES;
+        }
+        else
+        {
+            host.frame = frame;
+            host.masksToBounds = YES;
+        }
+
+        [self.layer addSublayer:host];
+        [_caLayerHosts setObject:host forKey:@(contextId)];
+
+        [(WineWindow*)self.window windowDidDrawContent];
+    }
+
+    - (void) updateCALayerHostFrame:(CAContextID)contextId frame:(CGRect)frame
+    {
+        CALayerHost* host = [_caLayerHosts objectForKey:@(contextId)];
+
+        if (!host || CGRectIsNull(frame)) return;
+        frame = snap_host_frame_to_view_edges(frame, self.layer.bounds);
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        if (CGRectIsEmpty(frame))
+        {
+            /* Became 0x0 while hosted: left alone, the layer keeps its last size and still
+             * covers live content. */
+            host.hidden = YES;
+            host.frame = CGRectZero;
+        }
+        else
+        {
+            /* The child it mirrors can move or resize in the other process. Visibility and
+             * geometry are independent: a window that reports 0x0 and returns to its old size
+             * must come back. */
+            if (!CGRectEqualToRect(host.frame, frame)) host.frame = frame;
+            if (host.hidden) host.hidden = NO;
+        }
+        [CATransaction commit];
+    }
+
+    /* Stack the hosted layers the way the windows they mirror stack: insertion order is not that
+     * order, since a client that recreates a swapchain on every resize puts the last-recreated
+     * layer on top of live content. */
+    - (void) setCALayerHostZPosition:(CAContextID)contextId zPosition:(double)zpos
+    {
+        CALayerHost* host = [_caLayerHosts objectForKey:@(contextId)];
+
+        if (host && host.zPosition != zpos)
+        {
+            [CATransaction begin];
+            [CATransaction setDisableActions:YES];
+            host.zPosition = zpos;
+            [CATransaction commit];
+        }
+    }
+
+    - (void) removeCALayerHostView:(CAContextID)contextId
+    {
+        NSNumber* key = @(contextId);
+        [[_caLayerHosts objectForKey:key] removeFromSuperlayer];
+        [_caLayerHosts removeObjectForKey:key];
+    }
+
     - (void) setLayerRetinaProperties:(BOOL)mode
     {
         [self layer].contentsScale = mode ? 2.0 : 1.0;
@@ -740,6 +887,9 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
 #pragma clang diagnostic pop
         [self updateGLContexts];
         [self setLayerRetinaProperties:mode];
+
+        for (CALayerHost* host in [_caLayerHosts allValues])
+            host.contentsScale = mode ? 2.0 : 1.0;
 
         [super setRetinaMode:mode];
     }
@@ -4067,6 +4217,246 @@ void macdrv_view_release_metal_view(macdrv_metal_view v)
         [view removeFromSuperview];
         [view release];
     });
+}
+
+/* Highball: Metal swapchains (Wine bug 60263). Backported from upstream Wine 11.11+, with the
+ * child-window geometry and z-order from the bug's reference patch. A MetalViewSwapChain is the
+ * in-process case, a WineMetalView in one of our views. A CAContextSwapChain is the cross-process
+ * case: the CAMetalLayer is exported through a CAContext and the process owning the target
+ * window hosts it in its content view through a CALayerHost. */
+
+@protocol WineMetalSwapChain <NSObject>
+
+- (CAMetalLayer*) layer;
+
+@end
+
+@interface MetalViewSwapChain : NSObject <WineMetalSwapChain>
+{
+    macdrv_metal_device device;
+    macdrv_metal_view metal_view;
+}
+
+- (instancetype) initWithView:(macdrv_view)view device:(macdrv_metal_device)dev;
+
+@end
+
+@implementation MetalViewSwapChain
+
+- (instancetype) initWithView:(macdrv_view)view device:(macdrv_metal_device)dev
+{
+    self = [super init];
+    if (!self) return nil;
+
+    /* The renderer's own device when it hands one over (D3DMetal, DXMT), the system default
+     * otherwise (Vulkan). Either way one reference is ours to release. */
+    if (dev)
+        device = (macdrv_metal_device)[(id<MTLDevice>)dev retain];
+    else if (!(device = macdrv_create_metal_device()))
+    {
+        [self release];
+        return nil;
+    }
+    if (!(metal_view = macdrv_view_create_metal_view(view, device)))
+    {
+        macdrv_release_metal_device(device);
+        device = NULL;
+        [self release];
+        return nil;
+    }
+    return self;
+}
+
+- (CAMetalLayer*) layer
+{
+    return (CAMetalLayer*)macdrv_view_get_metal_layer(metal_view);
+}
+
+- (void) dealloc
+{
+    if (metal_view) macdrv_view_release_metal_view(metal_view);
+    if (device) macdrv_release_metal_device(device);
+    [super dealloc];
+}
+
+@end
+
+@interface CAContextSwapChain : NSObject <WineMetalSwapChain>
+{
+    void* hwnd;                /* the window whose owner hosts the layer */
+    void* child_hwnd;          /* the cross-process child this layer belongs to (may be NULL) */
+    macdrv_metal_device device;
+    CAMetalLayer* offscreen_layer;
+    CAContext* remote_context;
+    CAContextID context_id;
+}
+
+- (instancetype) initWithHwnd:(void*)hwnd child:(void*)child bounds:(CGRect)bounds
+                       device:(macdrv_metal_device)dev;
+
+@end
+
+@implementation CAContextSwapChain
+
+- (instancetype) initWithHwnd:(void*)newHwnd child:(void*)newChild bounds:(CGRect)bounds
+                       device:(macdrv_metal_device)dev
+{
+    self = [super init];
+    if (!self) return nil;
+
+    hwnd = newHwnd;
+    child_hwnd = newChild;
+    if (dev)
+        device = (macdrv_metal_device)[(id<MTLDevice>)dev retain];
+    else if (!(device = macdrv_create_metal_device()))
+    {
+        [self release];
+        return nil;
+    }
+
+    offscreen_layer = [[CAMetalLayer alloc] init];
+    if (!offscreen_layer)
+    {
+        macdrv_release_metal_device(device);
+        device = NULL;
+        [self release];
+        return nil;
+    }
+
+    offscreen_layer.device = (id<MTLDevice>)device;
+    offscreen_layer.framebufferOnly = YES;
+    offscreen_layer.magnificationFilter = kCAFilterNearest;
+    offscreen_layer.backgroundColor = CGColorGetConstantColor(kCGColorBlack);
+    offscreen_layer.contentsScale = retina_on ? 2.0 : 1.0;
+    [offscreen_layer setBounds:cgrect_mac_from_win(bounds)];
+    [offscreen_layer setAnchorPoint:CGPointMake(0, 0)];
+
+    /* Export the CAMetalLayer from the rendering process, then have the
+     * target HWND's owner host it using CALayerHost. */
+    OnMainThread(^{
+        remote_context = [[CAContext contextWithCGSConnection:CGSMainConnectionID()
+                                                      options:[NSDictionary dictionary]] retain];
+        [remote_context setLayer:offscreen_layer];
+        context_id = [remote_context contextId];
+    });
+
+    if (!remote_context || !context_id)
+    {
+        [self release];
+        return nil;
+    }
+
+    macdrv_create_remote_layer(hwnd, child_hwnd, context_id);
+    return self;
+}
+
+- (CAMetalLayer*) layer
+{
+    return offscreen_layer;
+}
+
+- (void) dealloc
+{
+    if (context_id) macdrv_release_remote_layer(hwnd, context_id);
+    CAContext *context = remote_context;
+    CAMetalLayer *layer = offscreen_layer;
+    macdrv_metal_device dev = device;
+
+    OnMainThreadAsync(^{
+        [context setLayer:nil];
+        [context release];
+        [layer release];
+        if (dev) macdrv_release_metal_device(dev);
+    });
+
+    [super dealloc];
+}
+
+@end
+
+macdrv_metal_swapchain macdrv_create_view_swapchain(macdrv_view v, macdrv_metal_device device)
+{
+    return (macdrv_metal_swapchain)[[MetalViewSwapChain alloc] initWithView:v device:device];
+}
+
+macdrv_metal_swapchain macdrv_create_offscreen_swapchain(void* hwnd, void* child, CGRect bounds,
+                                                         macdrv_metal_device device)
+{
+    return (macdrv_metal_swapchain)[[CAContextSwapChain alloc] initWithHwnd:hwnd child:child
+                                                                        bounds:bounds device:device];
+}
+
+macdrv_metal_layer macdrv_swapchain_get_layer(macdrv_metal_swapchain swapchain)
+{
+    return (macdrv_metal_layer)[(id<WineMetalSwapChain>)swapchain layer];
+}
+
+void macdrv_destroy_swapchain(macdrv_metal_swapchain swapchain)
+{
+    [(id<WineMetalSwapChain>)swapchain release];
+}
+
+/* The frame arrives in Win32 raw pixels relative to the content view and CALayer.frame is in
+ * points: window.c works in Win32 space and the Cocoa side converts. A null frame (no child rect)
+ * stays null and selects the whole-view case. */
+void macdrv_window_create_ca_layer_host_view(macdrv_window w, unsigned int context_id,
+                                             CGRect frame, double zpos, int zpos_valid)
+{
+@autoreleasepool
+{
+    WineWindow* window = (WineWindow*)w;
+
+    OnMainThread(^{
+        NSView* content_view = [window contentView];
+
+        if ([content_view isKindOfClass:[WineContentView class]])
+        {
+            CGRect mac_frame = CGRectIsNull(frame) ? CGRectNull : cgrect_mac_from_win(frame);
+
+            [(WineContentView*)content_view addCALayerHostViewWithContextId:context_id
+                                                                      frame:mac_frame];
+            if (zpos_valid)
+                [(WineContentView*)content_view setCALayerHostZPosition:context_id zPosition:zpos];
+        }
+    });
+}
+}
+
+void macdrv_window_update_ca_layer_host_frame(macdrv_window w, unsigned int context_id,
+                                              CGRect frame, double zpos, int zpos_valid)
+{
+@autoreleasepool
+{
+    WineWindow* window = (WineWindow*)w;
+
+    OnMainThread(^{
+        NSView* content_view = [window contentView];
+
+        if ([content_view isKindOfClass:[WineContentView class]])
+        {
+            CGRect mac_frame = CGRectIsNull(frame) ? CGRectNull : cgrect_mac_from_win(frame);
+
+            [(WineContentView*)content_view updateCALayerHostFrame:context_id frame:mac_frame];
+            if (zpos_valid)
+                [(WineContentView*)content_view setCALayerHostZPosition:context_id zPosition:zpos];
+        }
+    });
+}
+}
+
+void macdrv_window_release_ca_layer_host_view(macdrv_window w, unsigned int context_id)
+{
+@autoreleasepool
+{
+    WineWindow* window = (WineWindow*)w;
+
+    OnMainThread(^{
+        NSView* content_view = [window contentView];
+
+        if ([content_view isKindOfClass:[WineContentView class]])
+            [(WineContentView*)content_view removeCALayerHostView:context_id];
+    });
+}
 }
 
 bool macdrv_get_view_backing_size(macdrv_view v, int backing_size[2])

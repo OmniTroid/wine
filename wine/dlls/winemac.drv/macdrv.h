@@ -100,6 +100,12 @@ enum macdrv_window_messages
 {
     WM_MACDRV_SET_WIN_REGION = WM_WINE_FIRST_DRIVER_MSG,
     WM_MACDRV_ACTIVATE_ON_FOLLOWING_FOCUS,
+    /* Highball: cross-process Metal swapchains (Wine bug 60263). Posted to the window that owns
+     * the NSWindow; wParam is the child hwnd the layer belongs to (0 for the window itself),
+     * lParam the CAContext id. */
+    WM_MACDRV_CREATE_REMOTE_LAYER,
+    WM_MACDRV_RELEASE_REMOTE_LAYER,
+    WM_MACDRV_UPDATE_REMOTE_LAYER,
 };
 
 struct macdrv_thread_data
@@ -195,17 +201,21 @@ struct macdrv_win_data
     unsigned int        per_pixel_alpha : 1;    /* is window using per-pixel alpha? */
     unsigned int        minimized : 1;          /* is window minimized? */
     unsigned int        fullscreen : 1;         /* is the window visible rect fullscreen? (unrelated to native AppKit/Cocoa fullscreen) */
+    unsigned int        remote_swapchain : 1;   /* Highball: renders into a layer hosted by the root's owner (another process) */
 
     /* CW HACK 22435 */
     CFMutableArrayRef   d3dmetal_client_surfaces;
+
+    /* Highball: CAContextID -> child HWND for the cross-process layers hosted on this window,
+     * so they can be repositioned and restacked as the children move (Wine bug 60263). */
+    CFMutableDictionaryRef remote_layer_children;
 };
 
 struct macdrv_client_surface
 {
     struct client_surface client;
     macdrv_view           cocoa_view;
-    macdrv_metal_device   metal_device;
-    macdrv_metal_view     metal_view;
+    macdrv_metal_swapchain metal_swapchain;
 };
 
 static inline struct macdrv_client_surface *impl_from_client_surface(struct client_surface *client)
@@ -214,6 +224,9 @@ static inline struct macdrv_client_surface *impl_from_client_surface(struct clie
 }
 
 extern struct macdrv_client_surface *macdrv_client_surface_create(HWND hwnd);
+extern BOOL macdrv_client_surface_acquire_metal_swapchain(struct macdrv_client_surface *surface,
+                                                          macdrv_metal_device device);
+extern BOOL macdrv_window_has_foreign_root(HWND hwnd, HWND *root);
 
 extern struct macdrv_win_data *get_win_data(HWND hwnd);
 extern void release_win_data(struct macdrv_win_data *data);
