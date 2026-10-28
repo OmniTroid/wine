@@ -1,0 +1,96 @@
+#!/usr/bin/make -f
+# This file is public domain software, originally written by Joey Hess.
+
+package = po4a
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+DESTDIR = $(CURDIR)/debian/$(package)
+ifndef PERL
+PERL = /usr/bin/perl
+endif
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+
+# Make sure the VERSION string were updated in binaries
+	@ pkgver=`dpkg-parsechangelog|\
+	          grep -m 1 Version|\
+		  sed -e 's/Version: //' -e 's/-.*//' -e 's/[[:blank:]]*//g'`;\
+	libver=`grep '$$VERSION=' lib/Locale/Po4a/TransTractor.pm| \
+                sed -e 's/^.*"\([^"]*\)".*/\1/'`; \
+	if [ "x$$pkgver" != "x$$libver" ] ; then \
+	   echo "VERSION in lib/Locale/Po4a/TransTractor.pm is wrong ($$pkgver!=$$libver)";\
+	   exit 1; \
+	fi;
+
+	$(PERL) Build.PL installdirs=vendor
+	$(PERL) Build
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+
+	-$(PERL) Build clean
+	rm -rf _build build-stamp Build
+
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+#	$(PERL) Build test
+	$(PERL) Build install destdir=$(DESTDIR)
+
+	for man in $(DESTDIR)/usr/share/man/man3/*.3pm; do \
+	    sed -i -e 's/ç/\\[,c]/g;s/Ç/\\[,C]/g' $$man; \
+	done
+
+# Build architecture-independent files here.
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+#	dh_installexamples
+#	dh_installmenu
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_installinit
+#	dh_installcron
+#	dh_installman mantmp/* # made upstream
+	dh_installchangelogs changelog
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_perl
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# Build architecture-dependent files here.
+binary-arch: build install
+# We have nothing to do by default.
+
+binary: binary-indep binary-arch 
+
+#     Shortcuts
+tar: clean
+	version=`sed -e 's/.* (//' -e 's/-.*//' -e 1q debian/changelog`; \
+	echo Creating ../$(package)_$$version.orig.tar.gz; \
+	#tar cf - * | tarcust -p $(package)-$$version -x '.*CVS.*' -x '.*.cvsignore' -x 'debian/.*' | gzip --best > ../$(package)_$$version.orig.tar.gz
+	perl Build.PL
+	perl Build dist
+	#$(MAKE) tar
+
+deb:
+	dpkg-buildpackage -rfakeroot -i'/CVS|/\.cvsignore|/mantmp|testsuite|lib/Locale/Po4a|po/pod'
+
+.PHONY: build clean binary-indep binary-arch binary install

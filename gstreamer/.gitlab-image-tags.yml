@@ -1,0 +1,14 @@
+variables:
+  ###
+  # IMPORTANT
+  # These are the version tags for the docker images the CI runs against.
+  # If you are hacking on them or need a them to rebuild, its enough
+  # to change any part of the string of the image you want.
+  ###
+  FEDORA_TAG:  '2024-03-05.0'
+
+  INDENT_TAG: '2024-03-05.0'
+
+  LINT_TAG: '2024-03-05.0'
+
+  WINDOWS_TAG: '2024-03-05.0'

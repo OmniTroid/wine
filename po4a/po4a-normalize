@@ -1,0 +1,150 @@
+#! /usr/bin/perl
+eval 'exec /usr/bin/perl -S $0 ${1+"$@"}'
+    if $running_under_some_shell;
+
+# po4a-normalize -- normalize documentation files
+# $Id$
+#
+# Copyright 2002, 2003, 2004 by Martin Quinson (mquinson#debian.org)
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of GPL (see COPYING).
+
+=head1 NAME
+
+po4a-normalize - normalize a documentation file by parsing it in po4a, and writing it back
+
+=head1 SYNOPSIS
+
+po4a-normalize -f E<lt>fmtE<gt> E<lt>master.docE<gt>
+
+=head1 DESCRIPTION
+
+The po4a (po for anything) project goal is to ease translations (and more
+interestingly, the maintenance of translations) using gettext tools on
+areas where they were not expected like documentation.
+
+The C<po4a-normalize> script is a debugging tool used to make sure that
+po4a don't change the document when it's not supposed to. Only use it if
+you're developing a new module, or if you doubt the sanity of the tools.
+
+The generated document will be written to po4a-normalize.output while the
+generated po file will be written to po4a-normalize.po. No way to change
+that ;)
+
+=head1 OPTIONS
+
+=over 4
+
+=item -o, --option
+
+Extra option(s) to pass to the format plugin. Specify each option in the
+'name=value' format. See the documentation of each plugin for more
+information about the valid options and their meanings.
+
+=item -h, --help
+
+Show a short help message.
+
+=item --help-format
+
+List the documentation format understood by po4a.
+
+=item -f, --format
+
+Format of the documentation you want to handle. Use the --help-format
+option to see the list of available formats.
+
+=item -M, --master-charset
+
+Charset of the file containing the document to translate.
+
+=item -V, --version
+
+Display the version of the script and exit.
+
+=back
+
+=head1 SEE ALSO
+
+L<po4a(7)>, L<po4a-updatepo(1)>, L<po4a-translate(1)>, L<po4a-gettextize(1)>.
+
+=head1 AUTHORS
+
+ Denis Barbier <barbier@linuxfr.org>
+ Martin Quinson (mquinson#debian.org)
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2002, 2003, 2004 by SPI, inc.
+
+This program is free software; you may redistribute it and/or modify it
+under the terms of GPL (see the COPYING file).
+
+=cut
+
+use 5.006;
+use strict;
+use warnings;
+
+use Locale::Po4a::Chooser;
+use Locale::Po4a::TransTractor;
+use Locale::Po4a::Common;
+
+use Getopt::Long qw(GetOptions);
+
+use Pod::Usage qw(pod2usage);
+
+Locale::Po4a::Common::textdomain('po4a');
+
+sub show_version {
+    Locale::Po4a::Common::show_version("po4a-normalize");
+    exit 0;
+}
+
+my ($help_fmt,$help,$type,$debug,$verbose,@options);
+my ($mastchar);
+Getopt::Long::Configure('no_auto_abbrev','no_ignore_case');
+GetOptions(
+	'help|h'       => \$help,
+	'help-format'  => \$help_fmt,
+	'format|f=s'   => \$type,
+
+	'master-charset|M=s'    => \$mastchar,
+
+	'option|o=s'   => \@options,
+
+	'verbose|v'    => \$verbose,
+	'debug|d'      => \$debug,
+	'version|V'    => \&show_version
+) or pod2usage();
+
+$help && pod2usage (-verbose => 1, -exitval => 0);
+$help_fmt && Locale::Po4a::Chooser::list(0);
+pod2usage () unless scalar @ARGV == 1;
+
+my %options = (
+    "verbose" => $verbose,
+    "debug" => $debug);
+foreach (@options) {
+    if (m/^([^=]*)=(.*)$/) {
+	$options{$1}="$2";
+    } else {
+	$options{$_}=1;
+    }
+}
+
+my $parser=Locale::Po4a::Chooser::new($type,%options);
+
+my $filename = shift || pod2usage(1);
+$filename eq '-' || -e $filename || die wrap_msg(gettext("File %s does not exist."), $filename);
+
+$parser->read($filename);
+$parser->{TT}{utf_mode} = 1;
+$parser->{TT}{file_in_charset} = $mastchar;
+$parser->parse();
+$parser->write('po4a-normalize.output');
+$parser->writepo('po4a-normalize.po');
+
+__END__
+

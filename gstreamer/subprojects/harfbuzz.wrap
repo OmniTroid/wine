@@ -1,0 +1,11 @@
+[wrap-file]
+directory = harfbuzz-8.0.0
+source_url = https://github.com/harfbuzz/harfbuzz/releases/download/8.0.0/harfbuzz-8.0.0.tar.xz
+source_filename = harfbuzz-8.0.0.tar.xz
+source_hash = 1f98b5e3d06a344fe667d7e8210094ced458791499839bddde98c167ce6a7c79
+
+[provide]
+harfbuzz = libharfbuzz_dep
+harfbuzz-icu = libharfbuzz_icu_dep
+harfbuzz-subset = libharfbuzz_subset_dep
+harfbuzz-gobject = libharfbuzz_gobject_dep

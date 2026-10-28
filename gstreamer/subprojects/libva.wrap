@@ -1,0 +1,4 @@
+[wrap-git]
+directory=libva
+url=https://github.com/intel/libva.git
+revision=1c58941b93ba5013c68e8370a408efd630275c9c

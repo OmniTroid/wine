@@ -1,0 +1,987 @@
+# Catalan translation of po4a
+# This file is distributed under the same license as the po4a package.
+# Jordi Vilalta <jvprat@gmail.com>, 2004.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: po4a bin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-01-05 19:47+0100\n"
+"PO-Revision-Date: 2006-10-08 10:32+0100\n"
+"Last-Translator: Jordi Vilalta Prat <jvprat@gmail.com>\n"
+"Language-Team: CA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../lib/Locale/Po4a/Chooser.pm:27
+msgid "Need to provide a module name"
+msgstr "Es necessita indicar un nom de mòdul"
+
+#: ../../lib/Locale/Po4a/Chooser.pm:46
+#, perl-format
+msgid "Unknown format type: %s."
+msgstr "Tipus de format desconegut: %s."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:48
+#, perl-format
+msgid "Module loading error: %s"
+msgstr "Error al carregar el mòdul: %s"
+
+#: ../../lib/Locale/Po4a/Chooser.pm:57
+msgid "List of valid formats:"
+msgstr "Llista de formats vàlids:"
+
+#: ../../lib/Locale/Po4a/Chooser.pm:59
+msgid "dia: uncompressed Dia diagrams."
+msgstr "dia: diagrames de Dia descomprimits."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:60
+msgid "docbook: Docbook XML."
+msgstr "docbook: Docbook XML."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:61
+msgid "guide: Gentoo Linux's xml documentation format."
+msgstr "guide: format xml de la documentació de Gentoo Linux."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:63
+msgid "ini: .INI format."
+msgstr ""
+
+#: ../../lib/Locale/Po4a/Chooser.pm:64
+msgid "kernelhelp: Help messages of each kernel compilation option."
+msgstr "kernelhelp: L'ajuda de les opcions de compilació del kernel."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:65
+msgid "latex: LaTeX format."
+msgstr "latex: format LaTeX."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:66
+msgid "man: Good old manual page format."
+msgstr "man: El clàssic format de les pàgines de manual."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:67
+msgid "pod: Perl Online Documentation format."
+msgstr "pod: Format de la Documentació Online de Perl."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:68
+msgid "sgml: either debiandoc or docbook DTD."
+msgstr "sgml: ja sigui el DTD de debiandoc o el de docbook."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:69
+msgid "texinfo: The info page format."
+msgstr "texinfo: El format les pàgines info."
+
+#: ../../lib/Locale/Po4a/Chooser.pm:71
+msgid "text: simple text document."
+msgstr ""
+
+#: ../../lib/Locale/Po4a/Common.pm:82
+#, perl-format
+msgid ""
+"%s version %s.\n"
+"written by Martin Quinson and Denis Barbier.\n"
+"\n"
+"Copyright (C) 2002, 2003, 2004 Software of Public Interest, Inc.\n"
+"This is free software; see source code for copying\n"
+"conditions. There is NO warranty; not even for\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+msgstr ""
+"%s versió %s.\n"
+"escrit per Martin Quinson i Denis Barbier.\n"
+"\n"
+"Copyright (C) 2002, 2003, 2004 Software of Public Interest, Inc.\n"
+"Això és software lliure; mireu el codi font per les condicions\n"
+"de còpia. No es dóna CAP garantia; ni tan sols per finalitats\n"
+"COMERCIALS o ADAPTACIÓ A UN PROPÒSIT PARTICULAR."
+
+#: ../../lib/Locale/Po4a/Debconf.pm:171
+#, perl-format
+msgid "Translated field in master document: %s"
+msgstr "Camp traduït en el document principal: %s"
+
+#: ../../lib/Locale/Po4a/KernelHelp.pm:104
+msgid "Syntax error"
+msgstr "Error de sintaxi"
+
+#: ../../lib/Locale/Po4a/Man.pm:448 ../../lib/Locale/Po4a/Po.pm:145
+#: ../../lib/Locale/Po4a/Sgml.pm:242 ../../lib/Locale/Po4a/TeX.pm:1609
+#: ../../lib/Locale/Po4a/Xml.pm:243
+#, perl-format
+msgid "Unknown option: %s"
+msgstr "Opció desconeguda: %s"
+
+#: ../../lib/Locale/Po4a/Man.pm:463
+msgid ""
+"Invalid 'groff_code' value. Must be one of 'fail', 'verbatim', 'translate'."
+msgstr ""
+"Valor de 'groff_code' invàlid. Ha de ser 'fail', 'verbatim', o bé "
+"'translate'."
+
+#: ../../lib/Locale/Po4a/Man.pm:494
+msgid ""
+"The no_wrap parameters must be a set of comma-separated begin:end couples.\n"
+msgstr ""
+"Els paràmetres de no_wrap han de ser un conjunt de parelles inici:final "
+"separades per comes.\n"
+
+#: ../../lib/Locale/Po4a/Man.pm:565
+msgid ""
+"This file was generated with Pod::Man. Translate the pod file with the pod "
+"module of po4a."
+msgstr ""
+"Aquest fitxer ha sigut generat amb Pod::Man. Tradueixi el fitxer pod amb el "
+"mòdul pod de po4a."
+
+#: ../../lib/Locale/Po4a/Man.pm:568
+msgid ""
+"This file was generated with help2man. Translate the source file with the "
+"regular gettext."
+msgstr ""
+"Aquest fitxer ha sigut generat amb help2man. Tradueixi el fitxer font amb el "
+"gettext habitual."
+
+#: ../../lib/Locale/Po4a/Man.pm:570
+msgid ""
+"This file was generated with docbook-to-man. Translate the source file with "
+"the sgml module of po4a."
+msgstr ""
+"Aquest fitxer ha sigut generat amb docbook-to-man. Tradueixi el fitxer font "
+"amb el mòdul sgml de po4a."
+
+#: ../../lib/Locale/Po4a/Man.pm:573
+msgid ""
+"This file was generated with docbook2man. Translate the source file with the "
+"sgml module of po4a."
+msgstr ""
+"Aquest fitxer ha sigut generat amb docbook2man. Tradueixi el fitxer font amb "
+"el mòdul sgml de po4a."
+
+#: ../../lib/Locale/Po4a/Man.pm:577 ../../lib/Locale/Po4a/Man.pm:585
+#, perl-format
+msgid ""
+"This file was generated with %s. You should translate the source file, but "
+"continuing anyway."
+msgstr ""
+"Aquest fitxer ha sigut generat amb %s. S'hauria de traduir el fitxer font, "
+"però es procedeix de totes maneres."
+
+#: ../../lib/Locale/Po4a/Man.pm:581
+msgid ""
+"This file was generated with db2man.xsl. Translate the source file with the "
+"xml module of po4a."
+msgstr ""
+"Aquest fitxer ha sigut generat amb db2man.xsl. Tradueixi el fitxer font amb "
+"el mòdul xml de po4a."
+
+#: ../../lib/Locale/Po4a/Man.pm:591
+#, perl-format
+msgid ""
+"This file contains the line '%s'. You should translate the source file, but "
+"continuing anyway."
+msgstr ""
+"Aquest fitxer conté la línia '%s'. S'hauria de traduir el fitxer font, però "
+"es procedeix de totes maneres."
+
+#: ../../lib/Locale/Po4a/Man.pm:653
+#, perl-format
+msgid ""
+"Font modifiers followed by a command may disturb po4a.  You should either "
+"remove the font modifier '%s', or integrate a \\f font modifier in the "
+"following command ('%s'), but continuing anyway."
+msgstr ""
+"Els modificadors de font seguits per una comanda poden confondre al po4a.  "
+"Hauríeu d'eliminar el modificador de font '%s', o bé integrar un modificador "
+"de font \\f a la següent comanda ('%s'), però se segueix de totes maneres."
+
+#: ../../lib/Locale/Po4a/Man.pm:758
+msgid ""
+"The unshiftline is not supported for the man module. Please send a bug "
+"report with the groff page that generated this error."
+msgstr ""
+"El mòdul man no té suport per a unshiftline. Envieu un informe d'error amb "
+"la pàgina de groff que ha generat aquest error."
+
+#: ../../lib/Locale/Po4a/Man.pm:801
+#, perl-format
+msgid ""
+"macro %s called without arguments. Even if placing the macro arguments on "
+"the next line is authorized by man(7), handling this would make the po4a "
+"parser too complicate. Please simply put the macro args on the same line."
+msgstr ""
+"s'ha cridat la macro %s sense paràmetres. Malgrat man(7) autoritza posar els "
+"paràmetres a la propera línia, tractar aquest cas faria l'analitzador de "
+"po4a massa complicat. Simplement poseu els paràmetres de la macro a la "
+"mateixa línia."
+
+#: ../../lib/Locale/Po4a/Man.pm:829
+msgid "Escape sequence \\c encountered. This is not completely handled yet."
+msgstr ""
+"S'ha trobat la seqüència d'escapada \\c. El seu tractament encara no és "
+"complet."
+
+#: ../../lib/Locale/Po4a/Man.pm:996
+#, perl-format
+msgid "Unbalanced '<' and '>' in font modifier. Faulty message: %s"
+msgstr ""
+"'<' i '>' des-balancejats al modificador de font. Missatge de la fallada: %s"
+
+#: ../../lib/Locale/Po4a/Man.pm:1183
+#, perl-format
+msgid "Unparsable line: %s"
+msgstr "No s'ha pogut analitzar la línia: %s"
+
+#: ../../lib/Locale/Po4a/Man.pm:1253
+#, perl-format
+msgid ""
+"Unknown macro '%s'. Remove it from the document, or refer to the Locale::"
+"Po4a::Man manpage to see how po4a can handle new macros."
+msgstr ""
+"Macro '%s' desconeguda. Elimineu-la del document, o mireu la pàgina de "
+"manual Locale::Po4a::Man per veure com po4a pot tractar noves macros."
+
+#: ../../lib/Locale/Po4a/Man.pm:1395
+msgid ""
+"Escaped space at the end of macro arg. With high probability, it won't do "
+"the trick with po4a (because of wrapping). You may want to remove it and use "
+"the .nf/.fi groff macro to control the wrapping."
+msgstr ""
+"Espai saltat al final del paràmetre de la macro. Molt probablement, no farà "
+"la seva feina amb po4a (degut al justificat). Segurament li interessarà "
+"eliminar-lo i utilitzar les macros .nf/.fi de groff per controlar el "
+"justificat."
+
+#: ../../lib/Locale/Po4a/Man.pm:1569
+#, perl-format
+msgid "Unsupported font in: '%s'."
+msgstr "Font no suportada a: '%s'."
+
+#: ../../lib/Locale/Po4a/Man.pm:1918
+msgid ""
+"This page defines a new macro with '.de'. Since po4a is not a real groff "
+"parser, this is not supported."
+msgstr ""
+"Aquesta pàgina defineix una nova macro amb '.de'. Com po4a no és un "
+"analitzador de groff real, això no està suportat."
+
+#: ../../lib/Locale/Po4a/Man.pm:1984
+msgid "The .ie macro must be followed by a .el macro."
+msgstr "La macro .ie ha d'anar seguida d'una macro .el."
+
+#: ../../lib/Locale/Po4a/Man.pm:2010
+#, perl-format
+msgid ""
+"This page uses conditionals with '%s'. Since po4a is not a real groff "
+"parser, this is not supported."
+msgstr ""
+"Aquesta pàgina utilitza condicionals amb '%s'. Com po4a no és un analitzador "
+"de groff, això no està suportat."
+
+#: ../../lib/Locale/Po4a/Man.pm:2051
+#, perl-format
+msgid ""
+"This page includes another file with '%s'. Do not forget to translate this "
+"file ('%s')."
+msgstr ""
+"Aquesta pàgina inclou un altre fitxer amb '%s'. No us oblideu de traduir "
+"aquest fitxer ('%s')."
+
+#: ../../lib/Locale/Po4a/Man.pm:2167
+#, perl-format
+msgid ""
+"This page uses the '%s' request with the number of lines in argument. This "
+"is not supported yet."
+msgstr ""
+"Aquesta pàgina utilitza la petició '%s' amb el número de línies com a "
+"paràmetre. Això no està suportat (encara)."
+
+#: ../../lib/Locale/Po4a/Man.pm:2182
+#, perl-format
+msgid ""
+"This page uses the '%s' request. This request is only supported when no "
+"argument is provided."
+msgstr ""
+"Aquesta pàgina utilitza la petició '%s'.  Aquesta només està suportada quan "
+"no se li passen paràmetres."
+
+#: ../../lib/Locale/Po4a/NewsDebian.pm:87
+msgid "Begin of a new entry before the end of previous one"
+msgstr "Comença una nova entrada abans d'acabar l'anterior"
+
+#: ../../lib/Locale/Po4a/Po.pm:151
+#, perl-format
+msgid ""
+"Invalid value for option 'porefs' ('%s' is not one of 'full', 'noline' or "
+"'none')"
+msgstr ""
+"Valor invàlid per a l'opció 'porefs' ('%s' no és 'full', 'noline' ni 'none')"
+
+#: ../../lib/Locale/Po4a/Po.pm:190
+msgid "Please provide a non-null filename"
+msgstr "Si us plau, proveïu un nom de fitxer no nul"
+
+#: ../../lib/Locale/Po4a/Po.pm:197 ../../lib/Locale/Po4a/TeX.pm:910
+#: ../../lib/Locale/Po4a/TransTractor.pm:388
+#: ../../lib/Locale/Po4a/TransTractor.pm:520
+#, perl-format
+msgid "Can't read from %s: %s"
+msgstr "No s'ha pogut llegir de %s: %s"
+
+#: ../../lib/Locale/Po4a/Po.pm:236
+#, perl-format
+msgid "Strange line: -->%s<--"
+msgstr "Línia estranya: -->%s<--"
+
+#: ../../lib/Locale/Po4a/Po.pm:261 ../../lib/Locale/Po4a/Po.pm:378
+#: ../../lib/Locale/Po4a/TransTractor.pm:420
+msgid "Can't write to a file without filename"
+msgstr "No es pot escriure a un fitxer sense nom"
+
+#: ../../lib/Locale/Po4a/Po.pm:276 ../../lib/Locale/Po4a/TransTractor.pm:435
+#, perl-format
+msgid "Can't write to %s: %s"
+msgstr "No s'ha pogut escriure a %s: %s"
+
+#: ../../lib/Locale/Po4a/Po.pm:352
+#, fuzzy, perl-format
+msgid "Can't unlink %s: %s."
+msgstr "No s'ha pogut esborrar %s."
+
+#: ../../lib/Locale/Po4a/Po.pm:360 ../../po4a:865
+#, fuzzy, perl-format
+msgid "Can't copy %s to %s: %s."
+msgstr "No s'ha pogut moure %s a %s."
+
+#: ../../lib/Locale/Po4a/Po.pm:365 ../../lib/Locale/Po4a/Po.pm:370
+#: ../../po4a:872
+#, fuzzy, perl-format
+msgid "Can't move %s to %s: %s."
+msgstr "No s'ha pogut moure %s a %s."
+
+#: ../../lib/Locale/Po4a/Po.pm:410
+msgid ""
+"\n"
+"The gettextization failed (once again). Don't give up, gettextizing is a "
+"subtle art, but this is only needed once to convert a project to the "
+"gorgeous luxus offered by po4a to translators.\n"
+"Please refer to the po4a(7) documentation, the section \"HOWTO convert a pre-"
+"existing translation to po4a?\" contains several hints to help you in your "
+"task"
+msgstr ""
+"\n"
+"Ha fallat la gettextització (una altra vegada). No abandoneu, gettextitzar "
+"és un art subtil, però només s'ha de fer una vegada per convertir el "
+"projecte al meravellós luxe ofert per po4a als traductors.\n"
+"Si us plau, mireu la documentació po4a(7), la secció \"Com convertir una "
+"traducció pre-existent a po4a?\" conté diversos trucs que us poden ajudar en "
+"la tasca"
+
+#: ../../lib/Locale/Po4a/Po.pm:420
+#, perl-format
+msgid ""
+"Original has more strings than the translation (%d>%d). Please fix it by "
+"editing the translated version to add some dummy entry."
+msgstr ""
+"L'original té més cadenes que la traducció (%d>%d). Arregleu-ho editant la "
+"versió traduïda afegint algunes entrades difuses."
+
+#: ../../lib/Locale/Po4a/Po.pm:426
+#, perl-format
+msgid ""
+"Original has less strings than the translation (%d<%d). Please fix it by "
+"removing the extra entry from the translated file. You may need an addendum "
+"(cf po4a(7)) to reput the chunk in place after gettextization. A possible "
+"cause is that a text duplicated in the original is not translated the same "
+"way each time. Remove one of the translations, and you're fine."
+msgstr ""
+"L'original té menys cadenes que la traducció (%d<%d). Si us plau, arregleu-"
+"ho treient les entrades extra del fitxer traduït. Probablement necessiteu un "
+"annex (consulteu po4a(7)) per tornar a inserir el fragment després de la "
+"gettextització. Una causa possible és que un text duplicat en l'original no "
+"estigui sempre traduït igual. Elimineu una de les traduccions, i ja hauria "
+"d'estar."
+
+#: ../../lib/Locale/Po4a/Po.pm:479
+#, perl-format
+msgid ""
+"po4a gettextization: Structure disparity between original and translated "
+"files:\n"
+"msgid (at %s) is of type '%s' while\n"
+"msgstr (at %s) is of type '%s'.\n"
+"Original text: %s\n"
+"Translated text: %s\n"
+"(result so far dumped to /tmp/gettextization.failed.po)"
+msgstr ""
+"po4a gettextization: L'estructura del fitxer original i del traduït "
+"difereixen:\n"
+"msgid (a %s) és del tipus '%s' mentre que\n"
+"msgstr (a %s) és del tipus '%s'.\n"
+"Text original: %s\n"
+"Text traduït: %s\n"
+"(el resultat fins al moment s'ha desat a /tmp/gettextization.failed.po)"
+
+#: ../../lib/Locale/Po4a/Po.pm:687
+#, perl-format
+msgid "Eval failure: %s"
+msgstr "Ha fallat l'avaluació: %s"
+
+#: ../../lib/Locale/Po4a/Po.pm:1004
+#, perl-format
+msgid "msgid defined twice: %s"
+msgstr "msgid definit més d'una vegada: %s"
+
+#: ../../lib/Locale/Po4a/Po.pm:1024
+#, perl-format
+msgid ""
+"Translations don't match for:\n"
+"%s\n"
+"-->First translation:\n"
+"%s\n"
+" Second translation:\n"
+"%s\n"
+" Old translation discarded."
+msgstr ""
+"Les traduccions no encaixen per:\n"
+"%s\n"
+"-->Primera traducció:\n"
+"%s\n"
+" Segona traducció:\n"
+"%s\n"
+" S'ha descartat la traducció vella."
+
+#: ../../lib/Locale/Po4a/Sgml.pm:208
+msgid ""
+"The needed module SGMLS.pm was not found and needs to be installed. It can "
+"be found on the CPAN, in package libsgmls-perl on debian, etc."
+msgstr ""
+"No s'ha trobat el mòdul SGMLS.pm i es necessita instal·lat. El pot trobar al "
+"CPAN, en el paquet libsgmls-perl de debian, etc."
+
+#: ../../lib/Locale/Po4a/Sgml.pm:276
+msgid "msgid skipped to help translators (contains only an entity)"
+msgstr "msgid saltat per ajudar als traductors (tan sols conté una entitat)"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:283
+msgid "msgid skipped to help translators (contains only tags)"
+msgstr "msgid saltat per ajudar als traductors (tan sols conté tags)"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:291
+msgid ""
+"msgid skipped to help translators (contains only opening or closing tags of "
+"marked sections)"
+msgstr ""
+"msgid saltat per ajudar als traductors (tan sols conté marques d'obertura o "
+"tancament de secció)"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:368
+msgid ""
+"Trying to handle a XML document as a SGML one. Feel lucky if it works, help "
+"us implementing a proper XML backend if it does not."
+msgstr ""
+"Intentant analitzar un document XML com a SGML. Senti's afortunat si "
+"funciona, sinó, ajudi'ns a implementar un backend propi per a XML."
+
+#: ../../lib/Locale/Po4a/Sgml.pm:381
+msgid ""
+"This file is not a master SGML document (no DOCTYPE). It may be a file to be "
+"included by another one, in which case it should not be passed to po4a "
+"directly. Text from included files is extracted/translated when handling the "
+"master file including them."
+msgstr ""
+"Aquest fitxer no és un document SGML principal (no conté DOCTYPE). Deu ser "
+"un fitxer a ser inclòs en un altre. En aquest cas, no s'hauria de passar "
+"directament a po4a. El text dels fitxers inclosos és extret/traduït quan es "
+"tracta el fitxer principal, incloent-los."
+
+#: ../../lib/Locale/Po4a/Sgml.pm:500
+msgid "DTD of this file is unknown, but proceeding as requested."
+msgstr ""
+"El DTD d'aquest fitxer és desconegut, però es procedeix tal com s'ha "
+"sol·licitat."
+
+#: ../../lib/Locale/Po4a/Sgml.pm:504
+msgid ""
+"DTD of this file is unknown. (supported: debiandoc, docbook). The prolog "
+"follows:"
+msgstr ""
+"El DTD d'aquest fitxer és desconegut. (suportats: debiandoc, docbook). El "
+"pròleg segueix:"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:598 ../../lib/Locale/Po4a/Sgml.pm:680
+#, perl-format
+msgid "Can't open %s (content of entity %s%s;): %s"
+msgstr "No s'ha pogut obrir %s (contingut de l'entitat %s%s;): %s"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:651
+#, perl-format
+msgid "unrecognized prolog inclusion entity: %%%s;"
+msgstr "entitat d'inclussió en el pròleg no reconeguda: %%%s;"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:768
+#, perl-format
+msgid "Can't close tempfile: %s"
+msgstr "No s'ha pogut tancar el fitxer temporal: %s"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:774
+#, perl-format
+msgid "Can't run nsgmls: %s"
+msgstr "No s'ha pogut executar nsgmls: %s"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:885
+#, perl-format
+msgid "Unknown tag %s"
+msgstr "Tag %s desconegut"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:919
+#, perl-format
+msgid "bad translation '%s' for '%s' in '%s'"
+msgstr "mala traducció '%s' per a '%s' a '%s'"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:974 ../../lib/Locale/Po4a/Sgml.pm:1052
+#, perl-format
+msgid "Closing tag for a translation container missing before %s"
+msgstr ""
+"Falta el tag de tancament per al contenidor de la traducció abans de %s"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:1135
+#, perl-format
+msgid "Unknown SGML event type: %s"
+msgstr "Tipus d'event SGML desconegut: %s"
+
+#: ../../lib/Locale/Po4a/Sgml.pm:1144
+msgid ""
+"Warning: nsgmls is missing or non-functional.  Please make sure that nsgmls "
+"is present and does not produce any error (with the -wno-valid option), and "
+"report a bug otherwise.  Continuing..."
+msgstr ""
+"Avís: no s'ha trobat nsgmls o bé no és funcional.  Si us plau, assegureu-vos "
+"que nsgmls està disponible i no produeix cap error (amb l'opció -wno-valid), "
+"i informeu de bug en cas contrari.  Seguint..."
+
+#: ../../lib/Locale/Po4a/TeX.pm:500 ../../lib/Locale/Po4a/TeX.pm:580
+#, perl-format
+msgid "un-balanced %s in '%s'"
+msgstr "%s desbalancejats a '%s'"
+
+#: ../../lib/Locale/Po4a/TeX.pm:514 ../../lib/Locale/Po4a/TeX.pm:598
+#, perl-format
+msgid "Error while checking the number of arguments of the '%s' command: %s"
+msgstr ""
+"Error mentre es comprovava el nombre de paràmetres de la comanda '%s': %s"
+
+#: ../../lib/Locale/Po4a/TeX.pm:761 ../../lib/Locale/Po4a/TeX.pm:858
+#, perl-format
+msgid "Unknown command: '%s'"
+msgstr "Comanda desconeguda: '%s'"
+
+#: ../../lib/Locale/Po4a/TeX.pm:904 ../../lib/Locale/Po4a/TransTractor.pm:384
+msgid "Can't read from file without having a filename"
+msgstr "No es pot llegir d'un fitxer sense nom"
+
+#: ../../lib/Locale/Po4a/TeX.pm:979 ../../lib/Locale/Po4a/TransTractor.pm:407
+#, perl-format
+msgid "Can't close %s after reading: %s"
+msgstr "No s'ha pogut tancar %s després de llegir: %s"
+
+#: ../../lib/Locale/Po4a/TeX.pm:1014 ../../po4a:502
+#, perl-format
+msgid "Can't open %s: %s"
+msgstr "No s'ha pogut obrir %s: %s"
+
+#: ../../lib/Locale/Po4a/TeX.pm:1052
+#, perl-format
+msgid "Cannot use an alias to the unknown command '%s'"
+msgstr "No es pot utilitzar un alias a la comanda desconeguda '%s'"
+
+#: ../../lib/Locale/Po4a/TeX.pm:1058
+#, perl-format
+msgid ""
+"You are using the old definitions format (%s).  Please update this "
+"definition line."
+msgstr ""
+"Esteu utilitzant el format de definicions antic (%s).  Si us plau, "
+"actualitzeu aquesta línia de definició."
+
+#: ../../lib/Locale/Po4a/TeX.pm:1261 ../../lib/Locale/Po4a/TeX.pm:1515
+#, perl-format
+msgid "unknown environment: '%s'"
+msgstr "entorn desconegut: '%s'"
+
+#: ../../lib/Locale/Po4a/TeX.pm:1283
+#, perl-format
+msgid "unmatched end of environment '%s'"
+msgstr "final de l'entorn '%s' desaparellat"
+
+#: ../../lib/Locale/Po4a/TeX.pm:1329 ../../lib/Locale/Po4a/TeX.pm:1441
+#, perl-format
+msgid "Wrong number of arguments for the '%s' command."
+msgstr "Nombre de paràmetres incorrecte per a la comanda '%s'."
+
+#: ../../lib/Locale/Po4a/TeX.pm:1342 ../../lib/Locale/Po4a/TeX.pm:1454
+#: ../../lib/Locale/Po4a/TeX.pm:1542
+msgid "An optional argument was provided, but a mandatory one is expected."
+msgstr "S'ha passat un paràmetre opcional, però se n'esperava un d'obligatori."
+
+#: ../../lib/Locale/Po4a/TeX.pm:1346 ../../lib/Locale/Po4a/TeX.pm:1458
+#, perl-format
+msgid "Command '%s': %s"
+msgstr "Comanda '%s': %s"
+
+#: ../../lib/Locale/Po4a/TeX.pm:1400
+#, perl-format
+msgid "register_generic_command: unsupported format: '%s'."
+msgstr "register_generic_command: format no suportat: '%s'."
+
+#: ../../lib/Locale/Po4a/TeX.pm:1509
+msgid "The first argument of \\begin is mandatory."
+msgstr "El primer paràmetre de \\begin és obligatori."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:442
+#, perl-format
+msgid "Can't close %s after writing: %s"
+msgstr "No s'ha pogut tancar %s després d'escriure: %s"
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:525
+#, perl-format
+msgid "Can't read Po4a header from %s."
+msgstr "No s'ha pogut llegir una capçalera Po4a de %s."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:530
+#, perl-format
+msgid "First line of %s does not look like a Po4a header."
+msgstr "La primera línia de %s no sembla ser una capçalera Po4a."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:535
+#, perl-format
+msgid "Syntax error in Po4a header of %s, near \"%s\""
+msgstr "Error de sintaxi a la capçalera Po4a de %s, prop de \"%s\""
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:549
+#, perl-format
+msgid "Invalid argument in the Po4a header of %s: %s"
+msgstr "Paràmetre invàlid en la capçalera Po4a de %s: %s"
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:555
+#, perl-format
+msgid "The Po4a header of %s does not define the mode."
+msgstr "La capçalera Po4a de %s no defineix el mode."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:559
+#, perl-format
+msgid ""
+"Mode invalid in the Po4a header of %s: should be 'before' or 'after' not %s."
+msgstr ""
+"Mode invàlid a la capçalera Po4a de %s: hauria de ser 'before' o 'after', no "
+"%s."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:564
+#, perl-format
+msgid "The Po4a header of %s does not define the position."
+msgstr "La capçalera Po4a de %s no defineix la posició."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:568
+msgid "No ending boundary given in the Po4a header, but mode=after."
+msgstr "No es dóna límit al final en la capçalera Po4a, però mode=after."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:594
+msgid "Can't apply addendum when not given the filename"
+msgstr "No es pot aplicar l'annex si no s'especifica el nom del fitxer"
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:597
+#, perl-format
+msgid "Addendum %s does not exist."
+msgstr "L'annex %s no existeix."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:618
+#, perl-format
+msgid "No candidate position for the addendum %s."
+msgstr "No s'ha trobat cap posició candidata per l'annex %s."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:623
+#, fuzzy, perl-format
+msgid "More than one candidate position found for the addendum %s."
+msgstr "S'ha trobat més d'una posició candidata per l'annex %s."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:629
+#: ../../lib/Locale/Po4a/TransTractor.pm:652
+#, perl-format
+msgid "Addendum '%s' applied before this line: %s"
+msgstr "S'ha aplicat l'annex '%s' abans d'aquesta la línia: %s"
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:659
+#, perl-format
+msgid "Addendum '%s' applied after the line: %s."
+msgstr "S'ha aplicat l'annex '%s' després de la línia: %s."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:666
+#, perl-format
+msgid "Addendum '%s' applied at the end of the file."
+msgstr "S'ha aplicat l'annex '%s' al final del fitxer."
+
+#: ../../lib/Locale/Po4a/TransTractor.pm:827
+#: ../../lib/Locale/Po4a/TransTractor.pm:987
+#, perl-format
+msgid ""
+"Couldn't determine the input document's charset. Please specify it on the "
+"command line. (non-ascii char at %s)"
+msgstr ""
+"No s'ha pogut determinar el joc de caracters del document d'entrada. Si us "
+"plau, especifiqueu-ho a la línia de comandes. (caracter no-ascii a %s)"
+
+#: ../../lib/Locale/Po4a/Wml.pm:88
+#, perl-format
+msgid "Can't create a temporary xml file: %s"
+msgstr "No s'ha pogut crear el fitxer xml temporal: %s"
+
+#: ../../lib/Locale/Po4a/Xml.pm:346
+#, perl-format
+msgid "Internal error: unknown type identifier '%s'."
+msgstr "Error intern: identificador de tipus '%s' desconegut."
+
+#: ../../lib/Locale/Po4a/Xml.pm:511
+#, perl-format
+msgid "Bad document type. '%s' expected."
+msgstr "Tipus de document incorrecte. S'esperava '%s'."
+
+#: ../../lib/Locale/Po4a/Xml.pm:577 ../../lib/Locale/Po4a/Xml.pm:1016
+#, perl-format
+msgid "Unexpected closing tag </%s> found. The main document may be wrong."
+msgstr ""
+"S'ha trobat el tag de tancament </%s> inesperat. Pot ser que el document "
+"principal sigui incorrecte."
+
+#: ../../lib/Locale/Po4a/Xml.pm:916
+#, perl-format
+msgid "Content of attribute %s excluded: %s"
+msgstr "S'ha exclòs el contingut de l'atribut %s: %s"
+
+#: ../../lib/Locale/Po4a/Xml.pm:925
+msgid "Bad attribute syntax"
+msgstr "Sintaxi d'atribut incorrecta"
+
+#: ../../lib/Locale/Po4a/Xml.pm:1230
+#, perl-format
+msgid "Content of tag %s excluded: %s"
+msgstr "S'ha exclòs el contingut del tag %s: %s"
+
+#: ../../po4a:436 ../../po4a:599
+#, perl-format
+msgid "Unparsable argument '%s' (%s)."
+msgstr "No s'ha pogut analitzar el paràmetre '%s' (%s)."
+
+#: ../../po4a:470
+#, perl-format
+msgid "failed to execute '%s': %s."
+msgstr "no s'ha pogut executar '%s': %s."
+
+#: ../../po4a:474
+#, perl-format
+msgid "'%s' died with signal %d, with coredump."
+msgstr "'%s' ha mort amb la senyal %d, amb coredump."
+
+#: ../../po4a:478
+#, perl-format
+msgid "'%s' died with signal %d, without coredump."
+msgstr "'%s' ha mort amb la senyal %d, sense coredump."
+
+#: ../../po4a:483
+#, perl-format
+msgid "'%s' exited with value %d."
+msgstr "'%s' ha sortit amb el valor %d."
+
+#: ../../po4a:487
+#, perl-format
+msgid "Error: %s"
+msgstr "Error: %s"
+
+#: ../../po4a:493 ../../po4a-gettextize:197 ../../po4a-normalize:140
+#: ../../po4a-translate:204 ../../po4a-translate:205 ../../po4a-updatepo:176
+#: ../../scripts/msguntypot:171 ../../scripts/msguntypot:173
+#, perl-format
+msgid "File %s does not exist."
+msgstr "El fitxer %s no existeix."
+
+#: ../../po4a:515
+#, perl-format
+msgid "Unknown variable: %s"
+msgstr "Variable desconeguda: %s"
+
+#: ../../po4a:524
+#, perl-format
+msgid "Syntax error: %s"
+msgstr "Error de sintaxi: %s"
+
+#: ../../po4a:551 ../../po4a:563
+#, perl-format
+msgid "'%s' redeclared"
+msgstr "'%s' redeclarat"
+
+#: ../../po4a:556
+#, perl-format
+msgid "Unparsable argument '%s'."
+msgstr "No s'ha pogut analitzar el paràmetre '%s'."
+
+#: ../../po4a:570
+#, perl-format
+msgid ""
+"The '%s' master file was specified earlier in the configuration file.  This "
+"may cause problems with options."
+msgstr ""
+"El fitxer principal '%s' ja s'havia especificat abans al fitxer de "
+"configuració.  Això pot causar problemes amb les opcions."
+
+#: ../../po4a:603
+msgid "The translated and master file are the same."
+msgstr "El fitxer traduït i l'original són el mateix."
+
+#: ../../po4a:610
+#, perl-format
+msgid "Translation of %s in %s redefined"
+msgstr "S'ha redefinit la traducció de %s a %s"
+
+#: ../../po4a:625
+#, perl-format
+msgid "Unparsable command '%s'."
+msgstr "No s'ha pogut analitzar la comanda '%s'."
+
+#: ../../po4a:631
+msgid "po4a_paths not declared. Dunno where to find the pot and po files"
+msgstr "No s'ha declarat po4a_paths. No sé on trobar els fitxers pot i po."
+
+#: ../../po4a:640
+msgid "Splitted mode, creating a temporary POT"
+msgstr ""
+
+#: ../../po4a:673 ../../po4a:795 ../../po4a-updatepo:204
+#, perl-format
+msgid "Updating %s:"
+msgstr "Actualitzant %s:"
+
+#: ../../po4a:676 ../../po4a:804 ../../po4a-updatepo:211
+#, perl-format
+msgid "Creating %s:"
+msgstr "Creant %s:"
+
+#: ../../po4a:714 ../../po4a:743 ../../po4a:827 ../../po4a-updatepo:186
+#, perl-format
+msgid "Can't create a temporary pot file: %s"
+msgstr "No s'ha pogut crear el fitxer pot temporal: %s"
+
+#: ../../po4a:725
+#, perl-format
+msgid " (%d entries)"
+msgstr "(%d entrades)"
+
+#: ../../po4a:750 ../../po4a:852
+#, fuzzy, perl-format
+msgid "Can't create directory '%s': %s"
+msgstr "No s'ha pogut escriure a %s: %s"
+
+#: ../../po4a:770 ../../scripts/msguntypot:208
+#, perl-format
+msgid "Can't create a temporary po file: %s"
+msgstr "No s'ha pogut crear el fitxer po temporal: %s"
+
+#: ../../po4a:935
+#, perl-format
+msgid "Discard %s (%s of %s strings; only %s%% translated; need %s%%)."
+msgstr ""
+"%s descartat (%s cadenes de %s; només hi ha un %s%% traduït; es necessita un "
+"%s%%)."
+
+#: ../../po4a:945
+#, perl-format
+msgid "Addendum %s does NOT apply to %s (translation discarded)."
+msgstr "L'annex %s NO es pot aplicar a %s (traducció descartada)."
+
+#: ../../po4a:954
+#, perl-format
+msgid "%s is %s%% translated (%s strings)."
+msgstr "%s està traduït en un %s%% (%s cadenes)"
+
+#: ../../po4a:957 ../../po4a-translate:236
+#, perl-format
+msgid "%s is %s%% translated (%s of %s strings)."
+msgstr "%s està traduït en un %s%% (%s de %s cadenes)."
+
+#: ../../po4a-translate:242
+#, perl-format
+msgid "Discard the translation of %s (only %s%% translated; need %s%%)."
+msgstr ""
+"S'ha descartat la traducció de %s (tan sols hi ha un %s%% traduït; es "
+"necessita un %s%%)."
+
+#: ../../po4a-translate:249
+#, perl-format
+msgid "Discard the translation of %s (addendum %s does not apply)."
+msgstr "S'ha descartat la traducció de %s (no s'ha pogut aplicar l'annex %s)."
+
+#: ../../po4a-updatepo:177
+msgid "po4a-updatepo can't take the input po from stdin."
+msgstr "po4a-updatepo no pot agafar el fitxer po d'entrada de stdin."
+
+#: ../../po4a-updatepo:189
+msgid "Parse input files... "
+msgstr "Analitzant els fitxers d'entrada... "
+
+#: ../../po4a-updatepo:199
+msgid "done."
+msgstr "fet."
+
+#: ../../po4a-updatepo:207 ../../scripts/msguntypot:217
+#, perl-format
+msgid "Error while running msgmerge: %s"
+msgstr "Error durant l'execució de msgmerge: %s"
+
+#: ../../po4a-updatepo:214
+#, perl-format
+msgid "Error while copying the po file: %s"
+msgstr "Error mentre es copiava el fitxer po: %s"
+
+#: ../../scripts/msguntypot:170 ../../scripts/msguntypot:172
+#, perl-format
+msgid "Mandatory argument '%s' missing."
+msgstr "Falta el paràmetre obligatori '%s'."
+
+#: ../../scripts/msguntypot:181
+#, perl-format
+msgid ""
+"The new and old pot files have different amount of strings (%d != %d). "
+"Something's seriously wrong here."
+msgstr ""
+"Els fitxers pot nou i vell tenen diferent nombre de cadenes (%d != %d). "
+"Alguna cosa no ha està bé."
+
+#: ../../scripts/msguntypot:199
+#, perl-format
+msgid "Found %d modified entries."
+msgstr "S'han trobat %d entrades modificades."
+
+#: ../../scripts/msguntypot:213
+#, perl-format
+msgid "Handling %s"
+msgstr "Tractant %s"
+
+#: ../../scripts/msguntypot:238
+#, perl-format
+msgid "Modified %d entries in %d files."
+msgstr "S'han modificat %d entrades a %d fitxers."
+
+#~ msgid "Can't close %s: %s"
+#~ msgstr "No s'ha pogut tancar %s: %s"
+
+#~ msgid ""
+#~ "This page seems to be a mdoc(7) formatted one. This is not supported "
+#~ "(yet)."
+#~ msgstr ""
+#~ "Aquesta pàgina sembla estar formatada amb mdoc(7). Això no està suportat "
+#~ "(encara)."
+
+#~ msgid "Unbalanced '<' and '>'"
+#~ msgstr "'<' i '>' desbalancejats"
+
+#~ msgid "Unknown function (%s) for '%s'"
+#~ msgstr "Funció desconeguda (%s) per a '%s'"
+
+#~ msgid "wrong number of optional arguments for command '%s'"
+#~ msgstr "nombre de paràmetres opcionals incorrecte per a la comanda '%s'"

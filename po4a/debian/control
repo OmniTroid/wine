@@ -1,0 +1,29 @@
+Source: po4a
+Section: text
+Priority: optional
+Maintainer: Nicolas FRANCOIS (Nekral) <nicolas.francois@centraliens.net>
+Uploaders: Martin Quinson <mquinson@debian.org>, Pierre Machard <pmachard@debian.org>
+Standards-Version: 3.7.2
+Build-Depends-Indep: perl-modules, libmodule-build-perl
+Build-Depends: debhelper (>> 4.0.0)
+
+Package: po4a
+Architecture: all
+Depends: ${misc:depends}, ${perl:Depends}, gettext (>= 0.11), perl-modules, libsgmls-perl, sp
+Recommends: libtext-wrapi18n-perl, libterm-readkey-perl, liblocale-gettext-perl
+Conflicts: po-pod, po-man, liblocale-po4a-perl
+Description: tools for helping translation of documentation
+ The po4a (po for anything) project goal is to ease translations (and
+ more interestingly, the maintenance of translations) using gettext
+ tools on areas where they were not expected like documentation.
+ .
+ This package contains the main libraries of po4a, and the following
+ sub-modules:
+ .
+   - KernelHelp: Help messages of each kernel compilation option.
+   - Man: either roff or mdoc format.
+   - Pod: Perl documentation format.
+   - Sgml: either debiandoc or docbook DTD.
+   - Dia: uncompressed Dia diagrams.
+   - LaTeX: generic TeX or LaTeX format.
+   - XML: very configurable, docbook DTD preconfigured.

@@ -1,0 +1,180 @@
+Version 9.06.0 main changes:
+* Include all bugfixes and changes from GPL version 9.06
+
+Version 9.05.0 main changes:
+* Include all bugfixes and changes from GPL version 9.05
+
+Version 9.04.1 main changes:
+* A lot of changes from releases 9.00, 9.01, 9.02, 9.03 and 9.04 of GPL-Ghostscript,
+	notably in color management, see the file doc/History9.htm for complete
+	list of changes and bug fixed.
+ 
+Version 8.71.0 main changes:
+* A big security update from upstream was included,
+	r11351(Adding -P- and -dSAFER to many POSIX shell scripts, win32 and OS/2
+	batch scripts; bug 691355) and r11352(observe minst->search_here_first
+	condition in file search; bug 691350), plus SEARCH_HERE_FIRST=0 by default
+	enabled in current dev tree.
+
+* A new configure option is available: --enable-safer-default
+	This option allow to have gs SAFER mode enabled by default. If you need to
+	have a less restrictive gs with this option, you need to add "-dNOSAFER" to
+	the gs command line. This mode isn't the default for now but after testing
+	with the option enabled, the next release will see this option ON by default.
+
+* Update some last files with the new LICENSE statement for a real complete
+    GPL V3 release.
+
+* Make libpng and libtiff hard dependencies because compilation failed without it.
+
+* Changes included from the 8.70 version from Artifex:
+    This release fixes a large number of issues with transparency, especially
+    as it interacts with color space conversion, mask contexts and patterns.
+    There have also been a number of significant fixes to font handling,
+    especially when generating PDF. And there are numerous robustness,
+    correctness and performance improvements.
+
+    New generic Esc/Page devices, eplmono and eplcolor were added to the
+    contrib directory. A new cdnj500 device was added to support the
+    HP DesignJet 500.
+
+    The licensing of the Free version of the core Ghostscript code has been
+    changed to GPLv3 or later. Previously, the core code was GPLv2 only.
+    Ghostscript can now be used with GPLv3 applications, and can no longer be
+    used with applications that are GPLv2-only.
+
+    This release also includes security fixes addressing CVE-2009-0583 and
+    CVE-2009-0792.
+
+* Changes included from the 8.71 version from Artifex:
+    It features improved handling of fonts, nesting and color fixes with
+    transparency objects, reduced memory footprint for the halftone cache,
+    as well as improvements to the pxl output devices, and the usual number of
+    bug and robustness fixes.
+
+    New in this release is an experimental project file for Microsoft
+    Visual Studio. This wraps the normal nmake build, and makes it easier for
+    developers to get started building Ghostscript with that compiler.
+
+    Support for tiff file output is now provided using the libtiff
+    implementation rather than our more limited native code as in previous
+    releases. There is also a new 'tiffsep1' output device which produces
+    halftoned separations at 1 bit-per-pixel, in contrast to the 'tiffsep'
+    device which produces 8 bit-per-pixel plates.
+
+    Support for using FreeType as a type rasterizer has been greatly improved.
+    We do not recommend its use as of this release, but it is much more
+    functional than previously and our intent is that it will become the
+    default in a future release.
+
+    The graphics library has been updated to provide more accurate scan
+    conversion of vector art including fixes to dash behavior, transparent
+    stroked paths, thick stroked paths, radial shadings, xps cap handling,
+    "pie" joins, degenerate beziers, improved handling of dropouts in thin
+    strokes and better thin axis-aligned strokes. 
+
+Version 8.64.0 main changes:
+* Approximately 100 bugs have been fixed since version 8.63.0. 
+	Of particular note in this release are improvements to overprint and spot 
+	color support in documents with transparency, improvements to PDF and PS 
+	output, proper handling of PDF-specific text rendering modes and support 
+	for reading AES-encrypted PDF documents.
+
+* Also improved is handling of CJK text, especially in vertical writing modes, 
+	memory footprint processing some files at high resolution and support for 
+	using the system's default paper size on unix.
+
+* The interpreter's handling of color spaces has been moved from PostScript 
+	code to C.
+
+* A number of the included printer drivers and cups wrappers have been updated 
+	to support a PDF-based workflow. Also fixed are several long-standing bugs
+	in the pcl drivers with respect to duplex, resolution and paper tray 
+	selection.
+* In this release they are one incompatible change:
+
+	- In this release the C source files have been split into two new 
+		directories. Interpreter source files are now in psi and the graphics 
+		library and output devices are now in base. Previously everything was 
+		in src. This may cause problems with existing references in external 
+		build files or when applying patches generated against an older version.
+
+Version 8.63.0 main changes:
+* Approximately 238 bugs have been fixed since version 8.62.0. 
+	Of particular note are robustness and performance improvements with large
+	files, invalid PDF, and font handling.
+* The major new feature of this release is multithreaded rendering. This can
+	be requested by passing -dNumRenderingThreads=n on the command line. The
+	input document is first parsed, and then each page is split into n bands
+	which are rendered concurrently. This can provide a significant reduction
+	in processing time on multi-core systems.
+* Images are now always interpolated in their source colorspace. This improves
+	correctness for XPS documents and avoids bypassing the custom color
+	management callbacks for interpolated images. Interpolation and color
+	management are both expensive operations, so this affects performance with
+	large images. The effect can be positive or negative depending on the file
+	and the target resolution. If performance is a problem, we suggest running
+	with -dNOINTERPOLATION.
+
+* Support for OpenPrinting Vector devices has been upgraded to version 1.0.
+
+* There are two new devices in this release, both experimental. Behdad Esfahbod
+	has contributed a cairo output device which uses the cairo graphics library
+	to generate PDF, SVG, EPS, or PNG files, based on the requested filename
+	extension. The svgwrite device directly outputs Scalable Vector Graphics,
+	the W3C XML vector graphics format. Both support only vector art at this
+	point; text and images will not be represented efficiently.
+
+* 3 incompatible changes in this release:
+	- The maximum number of color components has been reduced to 8 (from 252) 
+	as a performance improvement. Eight is the largest number commonly used and
+	the largest number for which we support continuous tone images. Users with
+	special needs can restore the previous behavior by setting the
+	GS_CLIENT_COLOR_MAX_COMPONENTS preprocessor symbol to the required number
+	of components at compile time.
+
+	- The -Z: debugging option now uses 'realtime' instead of 'usertime' when
+	reporting timing information on unix-like systems. This has always been the
+	case on windows-like systems.
+
+	- Obsolete makefiles for the DesqView environment have been removed.
+
+Version 8.62.0 main changes:
+
+* numerous bug fixes  and improvements:
+	- COMPILE_INIT=1 fixes from release 8.61
+	- tiffsep device can use more than 8 colorants
+	- faster shadings, overprinting and transparency
+	- fix some compatibility issues in PDF/A produced with pdfwrite device
+* fixed bug #20270 by patching src/gdevxini.c to avoid cropping issue in gv
+
+Version 8.61.0 main changes:
+
+* numerous bug fixed
+* use of x11alpha for default driver if X11 is available, falling back to
+  bbox otherwise
+
+Version 8.60.0 main changes:
+
+* merge of drivers and other patches from ESP Ghostscript
+* include the cups driver from ESP Ghostscript
+* The X11 device is now modularized on Linux and Solaris systems 
+  when built with GNU ld
+* include numerous important bug fixes over the previous stable 
+  version, as well as improvements to performance, memory footprint, 
+  shading and image handling
+* use of bbox for default driver output, no more the x11 one.
+
+Version 8.57.0 main changes:
+
+* bug fixes, performance and quality improvements in the areas of
+  patterns, shading and image filtering
+* implementation of the Well Tempered Screening algorithm in an 
+  output device, using Graeme Gill's IMDI library for efficient 
+  color mapping.
+
+Version 8.56.0 main changes:
+
+* include all bugfixes and changes from GPL version 8.56
+* change the version numbering convention, add a patch number
+* add DMP printer drivers and ppds, thanks to Sahaya Darcius

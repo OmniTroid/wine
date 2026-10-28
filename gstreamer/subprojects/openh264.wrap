@@ -1,0 +1,9 @@
+[wrap-file]
+directory = openh264-2.3.1
+source_url = https://github.com/cisco/openh264/archive/refs/tags/v2.3.1.tar.gz
+source_filename = openh264-2.3.1.tar.gz
+source_hash = 453afa66dacb560bc5fd0468aabee90c483741571bca820a39a1c07f0362dc32
+wrapdb_version = 2.3.1-1
+
+[provide]
+openh264 = openh264_dep

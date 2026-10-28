@@ -1,0 +1,90 @@
+[require]
+shader model >= 4.0
+
+[vertex shader todo(sm<6)]
+struct vertex
+{
+    float4 pos : SV_POSITION;
+    float2 clip[2] : SV_CLIPDISTANCE;
+};
+
+void main(float4 pos : POSITION, out vertex vertex)
+{
+    vertex.pos = pos;
+    // Only pixels closer to the center should remain.
+    vertex.clip[0] = float2(0.5 + pos.x, 0.5 - pos.x);
+    vertex.clip[1] = float2(0.5 + pos.y, 0.5 - pos.y);
+}
+
+[pixel shader todo(sm<6)]
+struct vertex
+{
+    float4 pos : SV_POSITION;
+    float2 clip[2] : SV_CLIPDISTANCE;
+};
+
+float4 main(in vertex vert) : SV_TARGET
+{
+    return round(10000 * float4(vert.clip[0], vert.clip[1]));
+}
+
+% clip[1] is ignored on WARP on SM6, this is probably a bug.
+[test]
+clear rtv 0 0.0 0.0 0.0 1.0
+todo(sm<6 | msl) draw quad
+                 probe ( 80,  60) f32(0.0, 0.0, 0.0, 1.0)
+                 probe ( 80, 180) f32(0.0, 0.0, 0.0, 1.0)
+                 probe ( 80, 300) f32(0.0, 0.0, 0.0, 1.0)
+                 probe ( 80, 420) f32(0.0, 0.0, 0.0, 1.0)
+if(!warp | sm<6) probe (240,  60) f32(0.0, 0.0, 0.0, 1.0)
+                 probe (240, 180) f32(2516, 7484, 7479, 2521)
+                 probe (240, 300) f32(2516, 7484, 2479, 7521)
+if(!warp | sm<6) probe (240, 420) f32(0.0, 0.0, 0.0, 1.0)
+if(!warp | sm<6) probe (400,  60) f32(0.0, 0.0, 0.0, 1.0)
+                 probe (400, 180) f32(7516, 2484, 7479, 2521)
+                 probe (400, 300) f32(7516, 2484, 2479, 7521)
+if(!warp | sm<6) probe (400, 420) f32(0.0, 0.0, 0.0, 1.0)
+                 probe (560,  60) f32(0.0, 0.0, 0.0, 1.0)
+                 probe (560, 180) f32(0.0, 0.0, 0.0, 1.0)
+                 probe (560, 300) f32(0.0, 0.0, 0.0, 1.0)
+                 probe (560, 420) f32(0.0, 0.0, 0.0, 1.0)
+
+[pixel shader]
+float4 main() : SV_TARGET
+{
+    return float4(1.0, 1.0, 1.0, 1.0);
+}
+
+[vertex shader fail(sm<6)]
+unsigned int i;
+
+struct vertex
+{
+    float4 pos : SV_POSITION;
+    float clip[2] : SV_CLIPDISTANCE;
+};
+
+void main(float4 pos : POSITION, out vertex vertex)
+{
+    vertex.pos = pos;
+    vertex.clip[0] = pos.x;
+    vertex.clip[1] = pos.y;
+    vertex.clip[i] = 1.0;
+}
+
+% clip[1] is ignored on WARP on SM6, this is probably a bug.
+[test]
+uniform 0 int 0
+clear rtv 0 0.0 0.0 0.0 1.0
+todo(sm<6 | msl) draw quad
+          probe (160, 120) f32(1.0, 1.0, 1.0, 1.0)
+if(!warp) probe (160, 360) f32(0.0, 0.0, 0.0, 1.0)
+          probe (480, 120) f32(1.0, 1.0, 1.0, 1.0)
+if(!warp) probe (480, 360) f32(0.0, 0.0, 0.0, 1.0)
+uniform 0 int 1
+clear rtv 0 0.0 0.0 0.0 1.0
+todo(sm<6 | msl) draw quad
+          probe (160, 120) f32(0.0, 0.0, 0.0, 1.0)
+          probe (160, 360) f32(0.0, 0.0, 0.0, 1.0)
+          probe (480, 120) f32(1.0, 1.0, 1.0, 1.0)
+          probe (480, 360) f32(1.0, 1.0, 1.0, 1.0)
