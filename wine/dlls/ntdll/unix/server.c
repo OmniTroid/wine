@@ -1283,6 +1283,10 @@ int server_pipe( int fd[2] )
 #ifdef HAVE_PIPE2
     static BOOL have_pipe2 = TRUE;
 
+#ifdef __APPLE__
+    /* pipe2 is weakly linked when the SDK is newer than the running macOS */
+    if (!&pipe2) have_pipe2 = FALSE;
+#endif
     if (have_pipe2)
     {
         if (!(ret = pipe2( fd, O_CLOEXEC ))) return ret;
