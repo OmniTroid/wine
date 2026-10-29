@@ -115,6 +115,7 @@ struct macdrv_thread_data
     HKL                         active_keyboard_layout;
     WORD                        keyc2vkey[128];
     WORD                        keyc2scan[128];
+    BOOL                        changing_display_mode;
 };
 
 extern struct macdrv_thread_data *macdrv_init_thread_data(void);
