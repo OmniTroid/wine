@@ -1753,9 +1753,11 @@ static CVReturn WineDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTi
             if ([self becameEligibleParentOrChild])
                 needAdjustWindowLevels = TRUE;
 
-            if (prev || next)
+            // an invisible prev and no next leaves nothing to order against; getSiblingWindowsForWindow: would
+            // throw on nil, abandoning the main thread's queued requests and the threads waiting on them
+            WineWindow* other = [prev isVisible] ? prev : next;
+            if (other)
             {
-                WineWindow* other = [prev isVisible] ? prev : next;
                 NSWindowOrderingMode orderingMode = [prev isVisible] ? NSWindowBelow : NSWindowAbove;
 
                 if (![self isOrdered:orderingMode relativeTo:other])
