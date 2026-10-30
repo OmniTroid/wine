@@ -315,8 +315,12 @@ static NSString* WineLocalizedString(unsigned int stringID)
                 });
 
                 exeName = [NSRunningApplication currentApplication].executableURL.lastPathComponent;
-                if ([blacklistedProcesses containsObject:exeName])
+                if ([blacklistedProcesses containsObject:exeName] || !show_in_dock)
                 {
+                    /* An accessory app shows windows without a Dock icon or menu bar. */
+                    if (!show_in_dock)
+                        [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+
                     /* Try to honor the activation request regardless. */
                     if (activateIfTransformed)
                         [self tryToActivateIgnoringOtherApps:YES];
