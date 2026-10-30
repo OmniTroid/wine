@@ -60,6 +60,7 @@ bool use_precise_scrolling = true;
 int gl_surface_mode = GL_SURFACE_IN_FRONT_OPAQUE;
 bool retina_enabled = false;
 bool enable_app_nap = false;
+bool show_in_dock = true;
 
 UINT64 app_icon_callback = 0;
 UINT64 app_quit_request_callback = 0;
@@ -361,6 +362,9 @@ static void setup_options(void)
 
     if (!get_config_key(hkey, appkey, "AllowSoftwareRendering", buffer, sizeof(buffer)))
         allow_software_rendering = IS_OPTION_TRUE(buffer[0]);
+
+    if (!get_config_key(hkey, appkey, "ShowInDock", buffer, sizeof(buffer)))
+        show_in_dock = IS_OPTION_TRUE(buffer[0]);
 
     if (!get_config_key(hkey, appkey, "AllowImmovableWindows", buffer, sizeof(buffer)))
         allow_immovable_windows = IS_OPTION_TRUE(buffer[0]);
