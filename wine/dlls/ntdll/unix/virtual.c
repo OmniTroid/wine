@@ -4989,8 +4989,8 @@ void virtual_set_force_exec( BOOL enable )
 
     server_enter_uninterrupted_section( &virtual_mutex, &sigset );
 #ifdef __APPLE__
-    /* Rosetta traps writes to executable memory, which stalled a pre-DEP game for over a second at a time when all of
-     * its memory was executable: pages become executable as they are executed instead */
+    /* Rosetta traps writes to executable memory, which stalls the whole process when all of its memory is executable:
+     * pages become executable as they are executed instead */
     if (rosetta_lazy_exec())
     {
         lazy_exec_prot = enable;
