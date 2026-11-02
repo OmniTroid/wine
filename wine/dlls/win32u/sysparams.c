@@ -2133,14 +2133,15 @@ static DEVMODEW *get_virtual_modes( const DEVMODEW *initial, const DEVMODEW *max
             count += add_virtual_mode( modes, count, &mode );
         }
 
-        mode.dmPelsWidth = vertical ? initial->dmPelsHeight : initial->dmPelsWidth;
-        mode.dmPelsHeight = vertical ? initial->dmPelsWidth : initial->dmPelsHeight;
+        /* already in the orientation it is shown in, unlike the landscape sizes above */
+        mode.dmPelsWidth = initial->dmPelsWidth;
+        mode.dmPelsHeight = initial->dmPelsHeight;
         count += add_virtual_mode( modes, count, &mode );
 
         if (maximum->dmPelsWidth != initial->dmPelsWidth || maximum->dmPelsHeight != initial->dmPelsHeight)
         {
-            mode.dmPelsWidth = vertical ? maximum->dmPelsHeight : maximum->dmPelsWidth;
-            mode.dmPelsHeight = vertical ? maximum->dmPelsWidth : maximum->dmPelsHeight;
+            mode.dmPelsWidth = maximum->dmPelsWidth;
+            mode.dmPelsHeight = maximum->dmPelsHeight;
             count += add_virtual_mode( modes, count, &mode );
         }
     }

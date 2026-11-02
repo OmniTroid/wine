@@ -240,6 +240,19 @@ static const size_t view_block_size = 0x100000;
 static void *preload_reserve_start;
 static void *preload_reserve_end;
 static BOOL force_exec_prot;  /* whether to force PROT_EXEC on all PROT_READ mmaps */
+#ifdef __APPLE__
+static BOOL lazy_exec_prot;   /* whether pages become executable when a fault shows they are executed */
+static BOOL rosetta_lazy_exec(void)
+{
+    static int translated = -1;
+    if (translated < 0)
+    {
+        size_t size = sizeof(translated);
+        if (sysctlbyname( "sysctl.proc_translated", &translated, &size, NULL, 0 ) == -1) translated = 0;
+    }
+    return translated == 1;
+}
+#endif
 static BOOL enable_write_exceptions;  /* raise exception on writes to executable memory */
 
 struct range_entry
@@ -4572,6 +4585,15 @@ NTSTATUS virtual_handle_fault( EXCEPTION_RECORD *rec, void *stack )
         goto done;
     }
 
+    if (err == EXCEPTION_EXECUTE_FAULT && lazy_exec_prot && (vprot & VPROT_COMMITTED) && !(vprot & VPROT_GUARD) &&
+        (get_unix_prot( vprot ) & PROT_READ) && !(get_unix_prot( vprot ) & PROT_EXEC))
+    {
+        set_page_vprot_bits( page, host_page_size, VPROT_EXEC, 0 );
+        mprotect_range( page, host_page_size, 0, 0 );
+        ret = STATUS_SUCCESS;
+        goto done;
+    }
+
     /* CW Hack 25719 */
     if (err == EXCEPTION_EXECUTE_FAULT && (get_unix_prot( vprot ) & PROT_EXEC))
     {
@@ -4606,8 +4628,24 @@ NTSTATUS virtual_handle_fault( EXCEPTION_RECORD *rec, void *stack )
             }
             else
             {
+#ifdef __APPLE__
+                /* A fault is slow under Rosetta, so writing a large watched range by faulting each page takes many
+                 * milliseconds. Reporting a page as written that wasn't costs its reader only a little copying. */
+                struct file_view *view = find_view( page, 0 );
+                char *start = page, *end = page + host_page_size;
+                if (view)
+                {
+                    start = (char *)((ULONG_PTR)page & ~(ULONG_PTR)(0x100000 - 1));
+                    end = start + 0x100000;
+                    if (start < (char *)view->base) start = view->base;
+                    if (end > (char *)view->base + view->size) end = (char *)view->base + view->size;
+                }
+                set_page_vprot_bits( start, end - start, 0, VPROT_WRITEWATCH );
+                mprotect_range( start, end - start, 0, 0 );
+#else
                 set_page_vprot_bits( page, host_page_size, 0, VPROT_WRITEWATCH );
                 mprotect_range( page, host_page_size, 0, 0 );
+#endif
             }
         }
         /* ignore fault if page is writable now */
@@ -4966,6 +5004,16 @@ void virtual_set_force_exec( BOOL enable )
     sigset_t sigset;
 
     server_enter_uninterrupted_section( &virtual_mutex, &sigset );
+#ifdef __APPLE__
+    /* Rosetta traps writes to executable memory, which stalls the whole process when all of its memory is executable:
+     * pages become executable as they are executed instead */
+    if (rosetta_lazy_exec())
+    {
+        lazy_exec_prot = enable;
+        server_leave_uninterrupted_section( &virtual_mutex, &sigset );
+        return;
+    }
+#endif
     if (!force_exec_prot != !enable)  /* change all existing views */
     {
         force_exec_prot = enable;

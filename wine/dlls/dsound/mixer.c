@@ -364,30 +364,15 @@ static UINT cp_fields_resample(IDirectSoundBufferImpl *dsb, UINT count, LONG64 *
                     dsb->buflen, dsb->sec_mixpos + i * istride, channel);
     }
 
+    /* FIR filtering every sample of every buffer takes more than a core under Rosetta */
     for(i = 0; i < count; ++i) {
-        UINT int_fir_steps = (freqAcc_start + i * dsb->freqAdjustNum) * dsbfirstep / dsb->freqAdjustDen;
-        float total_fir_steps = (freqAcc_start + i * dsb->freqAdjustNum) * dsbfirstep / (float)dsb->freqAdjustDen;
-        UINT ipos = int_fir_steps / dsbfirstep;
-
-        UINT idx = (ipos + 1) * dsbfirstep - int_fir_steps - 1;
-        float rem = int_fir_steps + 1.0 - total_fir_steps;
-
-        int fir_used = 0;
-        while (idx < fir_len - 1) {
-            fir_copy[fir_used++] = fir[idx] * (1.0 - rem) + fir[idx + 1] * rem;
-            idx += dsb->firstep;
-        }
-
-        assert(fir_used <= fir_cachesize);
-        assert(ipos + fir_used <= required_input);
+        LONG64 acc = freqAcc_start + i * dsb->freqAdjustNum;
+        UINT ipos = acc / dsb->freqAdjustDen;
+        float frac = (float)(acc % dsb->freqAdjustDen) / dsb->freqAdjustDen;
 
         for (channel = 0; channel < dsb->mix_channels; channel++) {
-            int j;
-            float sum = 0.0;
             float* cache = &intermediate[channel * required_input + ipos];
-            for (j = 0; j < fir_used; j++)
-                sum += fir_copy[j] * cache[j];
-            dsb->put(dsb, i * ostride, channel, sum * dsb->firgain);
+            dsb->put(dsb, i * ostride, channel, cache[0] * (1.0f - frac) + cache[1] * frac);
         }
     }
 

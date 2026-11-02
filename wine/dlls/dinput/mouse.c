@@ -56,6 +56,9 @@ struct mouse
     /* warping: whether we need to move mouse back to middle once we
      * reach window borders (for e.g. shooters, "surface movement" games) */
     BOOL                            need_warp;
+    /* percent of the system's motion that is reported, from the MouseSpeed setting */
+    LONG                            speed;
+    POINT                           speed_remainder;
     DWORD                           last_warped;
 
     WARP_MOUSE                      warp_override;
@@ -98,6 +101,16 @@ static BOOL init_object_properties( struct dinput_device *device, UINT index, st
     return DIENUM_CONTINUE;
 }
 
+static void scale_motion( struct mouse *impl, LONG *x, LONG *y )
+{
+    LONG scaled_x = (*x * impl->speed + impl->speed_remainder.x) / 100;
+    LONG scaled_y = (*y * impl->speed + impl->speed_remainder.y) / 100;
+    impl->speed_remainder.x += *x * impl->speed - scaled_x * 100;
+    impl->speed_remainder.y += *y * impl->speed - scaled_y * 100;
+    *x = scaled_x;
+    *y = scaled_y;
+}
+
 void dinput_mouse_rawinput_hook( IDirectInputDevice8W *iface, WPARAM wparam, LPARAM lparam, RAWINPUT *ri )
 {
     struct mouse *impl = impl_from_IDirectInputDevice8W( iface );
@@ -135,6 +148,7 @@ void dinput_mouse_rawinput_hook( IDirectInputDevice8W *iface, WPARAM wparam, LPA
         rel.y -= pt.y;
     }
 
+    scale_motion( impl, &rel.x, &rel.y );
     state->lX += rel.x;
     state->lY += rel.y;
 
@@ -212,8 +226,11 @@ int dinput_mouse_hook( IDirectInputDevice8W *iface, WPARAM wparam, LPARAM lparam
             POINT pt, pt1;
 
             GetCursorPos(&pt);
-            state->lX += pt.x = hook->pt.x - pt.x;
-            state->lY += pt.y = hook->pt.y - pt.y;
+            pt.x = hook->pt.x - pt.x;
+            pt.y = hook->pt.y - pt.y;
+            scale_motion( impl, &pt.x, &pt.y );
+            state->lX += pt.x;
+            state->lY += pt.y;
 
             if (impl->base.user_format.dwFlags & DIDF_ABSAXIS)
             {
@@ -535,7 +552,13 @@ HRESULT mouse_create_device( struct dinput *dinput, const GUID *guid, IDirectInp
     if (FAILED(hr = dinput_device_init_device_format( &impl->base.IDirectInputDevice8W_iface ))) goto failed;
     mouse_enum_objects( &impl->base.IDirectInputDevice8W_iface, &filter, DIDFT_AXIS, init_object_properties, NULL );
 
+    impl->speed = 100;
     get_app_key(&hkey, &appkey);
+    if (!get_config_key( hkey, appkey, L"MouseSpeed", buffer, sizeof(buffer) ))
+    {
+        LONG speed = wcstol( buffer, NULL, 10 );
+        if (speed > 0) impl->speed = speed;
+    }
     if (!get_config_key( hkey, appkey, L"MouseWarpOverride", buffer, sizeof(buffer) ))
     {
         if (!wcsnicmp( buffer, L"disable", -1 )) impl->warp_override = WARP_DISABLE;
