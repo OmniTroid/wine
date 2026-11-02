@@ -3853,8 +3853,10 @@ static void test_notification_pmsg(void)
     hr = IDirectMusicPerformance_FreePMsg(performance, (DMUS_PMSG *)notif);
     ok(hr == S_OK, "got %#lx\n", hr);
 
+    notif = (void *)0xdeadbeef;
     hr = IDirectMusicPerformance_GetNotificationPMsg(performance, &notif);
     ok(hr == S_FALSE, "got %#lx\n", hr);
+    ok(!notif, "got %p\n", notif);
 
     IDirectMusicSegmentState_Release(state);
 

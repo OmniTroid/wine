@@ -1058,6 +1058,7 @@ static HRESULT WINAPI performance_GetNotificationPMsg(IDirectMusicPerformance8 *
     TRACE("(%p, %p)\n", This, ret_msg);
 
     if (!ret_msg) return E_POINTER;
+    *ret_msg = NULL;
 
     EnterCriticalSection(&This->safe);
     if ((entry = list_head(&This->notifications)))
