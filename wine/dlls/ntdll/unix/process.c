@@ -966,7 +966,7 @@ NTSTATUS WINAPI __wine_unix_spawnvp( char * const argv[], int wait )
     int fd[2], status, err;
 
 #ifdef HAVE_PIPE2
-    if (pipe2( fd, O_CLOEXEC ) == -1)
+    if (!pipe2 || pipe2( fd, O_CLOEXEC ) == -1)
 #endif
     {
         if (pipe(fd) == -1) return STATUS_TOO_MANY_OPENED_FILES;
@@ -1062,7 +1062,7 @@ static NTSTATUS fork_and_exec( OBJECT_ATTRIBUTES *attr, const char *unix_name, i
     NTSTATUS status = STATUS_SUCCESS;
 
 #ifdef HAVE_PIPE2
-    if (pipe2( fd, O_CLOEXEC ) == -1)
+    if (!pipe2 || pipe2( fd, O_CLOEXEC ) == -1)
 #endif
     {
         if (pipe(fd) == -1) return STATUS_TOO_MANY_OPENED_FILES;
