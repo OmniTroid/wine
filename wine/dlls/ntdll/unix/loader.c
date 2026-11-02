@@ -605,29 +605,72 @@ fail:
 }
 
 
+/* The loader as the executable of an app bundle: macOS takes a process's identity, which automatic Game Mode goes by,
+ * from a bundle and not from the plist a bare executable embeds. */
 static char *create_preloader_link(const char *wineloader_path, const char *exe_name)
 {
+    static const char plist[] =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        "<plist version=\"1.0\"><dict>\n"
+        "<key>CFBundleExecutable</key><string>wine</string>\n"
+        "<key>CFBundleIdentifier</key><string>org.winehq.wine.hosted</string>\n"
+        "<key>CFBundlePackageType</key><string>APPL</string>\n"
+        "<key>NSPrincipalClass</key><string>WineApplication</string>\n"
+        "<key>LSApplicationCategoryType</key><string>public.app-category.games</string>\n"
+        "<key>LSSupportsGameMode</key><true/>\n"
+        "<key>LSUIElement</key><string>1</string>\n"
+        "</dict></plist>\n";
     struct stat st;
-    char *linkpath = create_tempdir(wineloader_path);
+    char *tempdir = create_tempdir(wineloader_path), *path = NULL, *dir, *lib, *loader_dir, *p;
+    FILE *file;
 
-    if (!linkpath)
+    if (!tempdir)
         return NULL;
-
-    if (strlcat(linkpath, exe_name, MAX_PATH) >= MAX_PATH)
+    if (strchr(exe_name, '/') || asprintf(&path, "%s%s.app/Contents/MacOS/wine", tempdir, exe_name) < 0)
         goto fail;
+    free(tempdir);
+    tempdir = NULL;
 
     /* If the link already exists, use it (if it's in this dir, it points to the right place). */
-    if (!stat(linkpath, &st))
-        return linkpath;
+    if (!stat(path, &st))
+        return path;
 
-    /* Try a hard link first, to avoid the little "alias" arrow that the Dock puts on the icon.
-     * But if that fails, fall back to a symlink.
-     */
-    if (!link(wineloader_path, linkpath) || !symlink(wineloader_path, linkpath))
-        return linkpath;
+    dir = strdup(path);
+    for (p = strstr(dir, ".app/"); p && (p = strchr(p + 1, '/')); *p = '/')
+    {
+        *p = 0;
+        mkdir(dir, 0700);
+    }
+    *strrchr(dir, '/') = 0;
+    *strrchr(dir, '/') = 0;
+    asprintf(&p, "%s/Info.plist", dir);
+    if ((file = fopen(p, "w")))
+    {
+        fputs(plist, file);
+        fclose(file);
+    }
+    free(p);
+    free(dir);
+
+    /* the loader looks for ntdll.so beside itself */
+    loader_dir = strdup(wineloader_path);
+    *strrchr(loader_dir, '/') = 0;
+    asprintf(&p, "%s/ntdll.so", loader_dir);
+    dir = strdup(path);
+    *strrchr(dir, '/') = 0;
+    asprintf(&lib, "%s/ntdll.so", dir);
+    symlink(p, lib);
+    free(lib);
+    free(p);
+    free(dir);
+    free(loader_dir);
+
+    if (!link(wineloader_path, path))
+        return path;
 
 fail:
-    free(linkpath);
+    free(tempdir);
+    free(path);
     return NULL;
 }
 
@@ -676,11 +719,8 @@ static void preloader_exec( char **argv, const char *image_path )
 #if defined(__APPLE__) && !defined(HAVE_WINE_PRELOADER)
     /* CW HACK 22144: Create and exec a more descriptively-named link to the loader,
      * which will show up as the icon name in the Dock.
-     * When the preloader is not being used, WINEDLLPATH needs to be set correctly for
-     * the loader to find ntdll.so, so don't even attempt this unless WINEDLLPATH is set.
      */
-    if (getenv("WINEDLLPATH"))
-        replace_wineloader_path_with_link( &(argv[1]), image_path );
+    replace_wineloader_path_with_link( &(argv[1]), image_path );
 #endif
 
     execv( argv[1], argv + 1 );
