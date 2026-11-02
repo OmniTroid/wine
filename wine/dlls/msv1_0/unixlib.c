@@ -167,7 +167,7 @@ static NTSTATUS ntlm_fork( void *args )
     NTSTATUS status = STATUS_SUCCESS;
 
 #ifdef HAVE_PIPE2
-    if (pipe2( pipe_in, O_CLOEXEC ) < 0)
+    if (!pipe2 || pipe2( pipe_in, O_CLOEXEC ) < 0)
 #endif
     {
         if (pipe( pipe_in ) < 0 ) return SEC_E_INTERNAL_ERROR;
@@ -175,7 +175,7 @@ static NTSTATUS ntlm_fork( void *args )
         fcntl( pipe_in[1], F_SETFD, FD_CLOEXEC );
     }
 #ifdef HAVE_PIPE2
-    if (pipe2( pipe_out, O_CLOEXEC ) < 0)
+    if (!pipe2 || pipe2( pipe_out, O_CLOEXEC ) < 0)
 #endif
     {
         if (pipe( pipe_out ) < 0)
