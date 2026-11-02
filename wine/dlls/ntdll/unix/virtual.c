@@ -4628,8 +4628,24 @@ NTSTATUS virtual_handle_fault( EXCEPTION_RECORD *rec, void *stack )
             }
             else
             {
+#ifdef __APPLE__
+                /* A fault is slow under Rosetta, so writing a large watched range by faulting each page takes many
+                 * milliseconds. Reporting a page as written that wasn't costs its reader only a little copying. */
+                struct file_view *view = find_view( page, 0 );
+                char *start = page, *end = page + host_page_size;
+                if (view)
+                {
+                    start = (char *)((ULONG_PTR)page & ~(ULONG_PTR)(0x100000 - 1));
+                    end = start + 0x100000;
+                    if (start < (char *)view->base) start = view->base;
+                    if (end > (char *)view->base + view->size) end = (char *)view->base + view->size;
+                }
+                set_page_vprot_bits( start, end - start, 0, VPROT_WRITEWATCH );
+                mprotect_range( start, end - start, 0, 0 );
+#else
                 set_page_vprot_bits( page, host_page_size, 0, VPROT_WRITEWATCH );
                 mprotect_range( page, host_page_size, 0, 0 );
+#endif
             }
         }
         /* ignore fault if page is writable now */
