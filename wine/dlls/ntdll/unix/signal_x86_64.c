@@ -2490,6 +2490,21 @@ static inline BOOL check_invalid_gsbase( ucontext_t *ucontext )
 }
 
 
+/***********************************************************************
+ *           is_foreign_thread_fault
+ *
+ * A thread Wine did not create, such as a system framework's dispatch worker, has no TEB
+ * for the handlers to read. Returning with the default action set lets the faulting
+ * instruction run again and end the process with the original fault.
+ */
+static BOOL is_foreign_thread_fault( int sig )
+{
+    if (NtCurrentTeb()) return FALSE;
+    signal( sig, SIG_DFL );
+    return TRUE;
+}
+
+
 /**********************************************************************
  *		segv_handler
  *
@@ -2500,6 +2515,8 @@ static void segv_handler( int signal, siginfo_t *siginfo, void *sigcontext )
     ucontext_t *ucontext = init_handler( sigcontext );
     EXCEPTION_RECORD rec = { 0 };
     struct xcontext context;
+
+    if (is_foreign_thread_fault( signal )) return;
 
     rec.ExceptionAddress = (void *)RIP_sig(ucontext);
     save_context( &context, ucontext );
@@ -2597,6 +2614,8 @@ static void trap_handler( int signal, siginfo_t *siginfo, void *sigcontext )
     EXCEPTION_RECORD rec = { 0 };
     struct xcontext context;
 
+    if (is_foreign_thread_fault( signal )) return;
+
     if (handle_syscall_trap( ucontext, siginfo )) return;
 
     rec.ExceptionAddress = (void *)RIP_sig(ucontext);
@@ -2630,6 +2649,8 @@ static void fpe_handler( int signal, siginfo_t *siginfo, void *sigcontext )
     ucontext_t *ucontext = init_handler( sigcontext );
     EXCEPTION_RECORD rec = { .ExceptionAddress = (void *)RIP_sig(ucontext) };
     struct xcontext context;
+
+    if (is_foreign_thread_fault( signal )) return;
 
     save_context( &context, sigcontext );
 
